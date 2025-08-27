@@ -22,11 +22,11 @@ app.add_middleware(
 
 # Configuration de la base de données
 DATABASE_CONFIG = {
-    "host": os.getenv("DB_HOST", "localhost"),
-    "database": os.getenv("DB_NAME", "eccbc_stock"),
-    "user": os.getenv("DB_USER", "postgres"),
-    "password": os.getenv("DB_PASSWORD", "password"),
-    "port": os.getenv("DB_PORT", 5432)
+    "host": "localhost",
+    "database": "coca_db",
+    "user": "postgres",  # ou ton user dans pgAdmin
+    "password": "1234",      # vide si pas de mot de passe
+    "port": 5432
 }
 
 # Modèles Pydantic
