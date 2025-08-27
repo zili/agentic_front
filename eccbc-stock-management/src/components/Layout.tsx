@@ -1,16 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
 import { 
   LayoutDashboard, 
   Package, 
   Warehouse, 
   ShoppingCart, 
   Menu, 
-  X,
-  Wifi,
-  WifiOff
+  X
 } from 'lucide-react';
-import { healthApi } from '../lib/api';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -20,7 +16,6 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isApiOnline, setIsApiOnline] = useState(true);
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -29,57 +24,53 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
     { id: 'orders', label: 'Commandes', icon: ShoppingCart },
   ];
 
-  useEffect(() => {
-    const checkApiHealth = async () => {
-      try {
-        await healthApi.check();
-        setIsApiOnline(true);
-      } catch (error) {
-        setIsApiOnline(false);
-      }
-    };
-
-    checkApiHealth();
-    const interval = setInterval(checkApiHealth, 30000); // Check every 30 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 coca-shadow">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="p-2 rounded-md text-gray-600 hover:text-coca-red hover:bg-gray-100 lg:hidden"
+                className="p-2 rounded-md text-gray-600 hover:text-red-600 hover:bg-gray-100 lg:hidden"
               >
                 {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
               
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-coca-red rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">E</span>
-                </div>
+              <div className="flex items-center space-x-4 ml-6">
+                <img 
+                  src="/ECCBC_Logo.png" 
+                  alt="ECCBC Logo" 
+                  className="h-24 w-auto"
+                />
                 <div>
-                  <h1 className="text-xl font-bold text-coca-black">ECCBC</h1>
-                  <p className="text-xs text-gray-500">Stock Management</p>
+                  <h1 className="text-base font-semibold text-red-600">Stock Management System</h1>
                 </div>
               </div>
             </div>
-
-            {/* API Status */}
-            <div className="flex items-center space-x-2">
-              <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${
-                isApiOnline 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {isApiOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
-                <span>{isApiOnline ? 'API Online' : 'API Offline'}</span>
-              </div>
+            
+            {/* Navbar Pages - vraiment séparées maintenant */}
+            <div className="flex items-center space-x-8 ml-32">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => onPageChange(item.id)}
+                  className={`relative font-semibold pb-1 transition-all duration-300 ${
+                    currentPage === item.id
+                      ? 'text-red-600'
+                      : 'text-gray-700 hover:text-red-500'
+                  }`}
+                >
+                  {item.label.toUpperCase()}
+                  {currentPage === item.id && (
+                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600 transition-all duration-300 ease-in-out"></span>
+                  )}
+                  {currentPage !== item.id && (
+                    <span className="absolute bottom-0 left-0 h-0.5 bg-red-400 transition-all duration-300 ease-in-out w-0 hover:w-full"></span>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -87,57 +78,49 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
 
       <div className="flex">
         {/* Sidebar */}
-        <motion.aside
-          initial={false}
-          animate={{ width: isSidebarOpen ? 256 : 0 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className={`bg-white shadow-lg border-r border-gray-200 overflow-hidden ${
-            isSidebarOpen ? 'block' : 'hidden lg:block'
-          }`}
-        >
+        <aside className={`shadow-lg ${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden`} style={{backgroundColor: '#b91c1c'}}>
           <nav className="p-4 space-y-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentPage === item.id;
               
               return (
-                <motion.button
+                <button
                   key={item.id}
                   onClick={() => onPageChange(item.id)}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+                  className={`w-full flex flex-col items-center space-y-2 px-4 py-6 rounded-lg text-left transition-all duration-500 ease-in-out text-white ${
                     isActive
-                      ? 'bg-coca-red text-white coca-shadow'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-coca-red'
+                      ? 'shadow-lg transform scale-105'
+                      : 'hover:bg-red-700 hover:bg-opacity-70 hover:scale-102'
                   }`}
-                  whileHover={{ x: isActive ? 0 : 4 }}
-                  whileTap={{ scale: 0.98 }}
+                  style={isActive ? {backgroundColor: '#991b1b'} : {}}
                 >
-                  <Icon size={20} />
-                  <span className="font-medium">{item.label}</span>
-                </motion.button>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500 ease-in-out ${
+                    isActive 
+                      ? 'bg-white' 
+                      : 'bg-white bg-opacity-20'
+                  }`}>
+                    <Icon size={24} className={isActive ? 'text-red-900' : 'text-white'} />
+                  </div>
+                  <span className="font-medium text-sm">{item.label}</span>
+                </button>
               );
             })}
           </nav>
 
-          {/* Coca-Cola Branding */}
+          {/* Branding */}
           <div className="absolute bottom-4 left-4 right-4">
-            <div className="p-4 bg-gradient-to-r from-coca-red to-red-600 rounded-lg text-white text-center">
+            <div className="p-4 bg-red-950 rounded-lg text-white text-center">
               <h3 className="font-bold text-lg">Coca-Cola</h3>
               <p className="text-xs opacity-90">Embouteilleur ECCBC</p>
             </div>
           </div>
-        </motion.aside>
+        </aside>
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto">
           <div className="p-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              {children}
-            </motion.div>
+            {children}
           </div>
         </main>
       </div>

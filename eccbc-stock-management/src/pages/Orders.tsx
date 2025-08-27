@@ -18,8 +18,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { ordersApi, productsApi } from '../lib/api';
-import { Order, Product } from '../types';
+// import { ordersApi, productsApi } from '../lib/api'; // Commented out for demo
+import type { Order, Product } from '../types';
 
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);

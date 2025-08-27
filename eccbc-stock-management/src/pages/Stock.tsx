@@ -15,8 +15,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { stockApi, productsApi } from '../lib/api';
-import { Product, StockMovement } from '../types';
+// import { stockApi, productsApi } from '../lib/api'; // Commented out for demo
+import type { Product, StockMovement } from '../types';
 
 const Stock: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);

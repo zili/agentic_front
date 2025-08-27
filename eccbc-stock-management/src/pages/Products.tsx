@@ -13,8 +13,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { productsApi } from '../lib/api';
-import { Product } from '../types';
+// import { productsApi } from '../lib/api'; // Commented out for mock data
+import type { Product } from '../types';
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
