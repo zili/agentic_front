@@ -1,13 +1,26 @@
 export interface Product {
-  id: string;
+  id: number;
   code: string;
   name: string;
+  name_fr?: string;
+  name_ar?: string;
+  name_en?: string;
+  description?: string;
+  category_id: number;
+  unit_type: string;
+  unit_size?: string;
+  units_per_case: number;
   price: number;
-  stock_available: number;
-  stock_reserved: number;
-  stock_total: number;
+  is_active: boolean;
+  stock_quantity: number;
+  reserved_quantity: number;
+  available_quantity: number;
   created_at: string;
   updated_at: string;
+  // Propriétés calculées pour la compatibilité
+  stock_available?: number;
+  stock_reserved?: number;
+  stock_total?: number;
 }
 
 export interface Order {

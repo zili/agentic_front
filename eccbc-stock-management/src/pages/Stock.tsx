@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Warehouse, 
-  Plus, 
-  Minus, 
   History, 
   AlertTriangle,
   Package,
@@ -12,20 +10,16 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-// import { stockApi, productsApi } from '../lib/api'; // Commented out for demo
+import { productsApi } from '../lib/api';
 import type { Product, StockMovement } from '../types';
 
 const Stock: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [updateQuantity, setUpdateQuantity] = useState<number>(0);
-  const [updateReason, setUpdateReason] = useState('');
+
 
   useEffect(() => {
     fetchData();
@@ -38,14 +32,23 @@ const Stock: React.FC = () => {
         productsApi.getAll()
       ]);
       
-      setProducts(productsResponse.data);
+      // Adapter les données de l'API
+      const adaptedProducts = productsResponse.data.map((product: any) => ({
+        ...product,
+        id: product.id.toString(),
+        stock_available: product.available_quantity || 0,
+        stock_reserved: product.reserved_quantity || 0,
+        stock_total: product.stock_quantity || 0
+      }));
+      setProducts(adaptedProducts);
 
+      // TODO: Remplacer par un vrai appel API quand l'endpoint stock movements sera prêt
       // Mock stock movements for demo
       const mockMovements: StockMovement[] = [
         {
           id: '1',
-          product_id: '1',
-          product: productsResponse.data[0],
+          product_id: 1,
+          product: adaptedProducts[0],
           movement_type: 'in',
           quantity: 50,
           reason: 'Réapprovisionnement',
@@ -54,8 +57,8 @@ const Stock: React.FC = () => {
         },
         {
           id: '2',
-          product_id: '2',
-          product: productsResponse.data[1],
+          product_id: 2,
+          product: adaptedProducts[1],
           movement_type: 'out',
           quantity: 25,
           reason: 'Commande client',
@@ -64,8 +67,8 @@ const Stock: React.FC = () => {
         },
         {
           id: '3',
-          product_id: '1',
-          product: productsResponse.data[0],
+          product_id: 1,
+          product: adaptedProducts[0],
           movement_type: 'adjustment',
           quantity: -5,
           reason: 'Inventaire - produits endommagés',
@@ -108,37 +111,22 @@ const Stock: React.FC = () => {
     }
   };
 
-  const handleStockUpdate = async (product: Product, type: 'in' | 'out' | 'adjustment') => {
-    setSelectedProduct(product);
-    setShowUpdateModal(true);
-    setUpdateQuantity(0);
-    setUpdateReason('');
-  };
 
-  const submitStockUpdate = async () => {
-    if (!selectedProduct || updateQuantity === 0) return;
-
-    try {
-      await stockApi.update(selectedProduct.id, {
-        quantity: updateQuantity,
-        movement_type: updateQuantity > 0 ? 'in' : updateQuantity < 0 ? 'out' : 'adjustment',
-        reason: updateReason || 'Mise à jour manuelle'
-      });
-
-      // Refresh data
-      fetchData();
-      setShowUpdateModal(false);
-      setSelectedProduct(null);
-    } catch (error) {
-      console.error('Error updating stock:', error);
-    }
-  };
 
   const getStockLevel = (product: Product) => {
-    const percentage = (product.stock_available / product.stock_total) * 100;
+    const available = product.stock_available || 0;
+    const total = product.stock_total || 0;
+    
+    // Si moins de 10 unités disponibles : Rouge et "Faible"
+    if (available < 10) return { level: 'low', color: 'bg-red-500', text: 'Faible' };
+    
+    // Si stock total est 0 : Rupture
+    if (total === 0) return { level: 'empty', color: 'bg-red-500', text: 'Rupture' };
+    
+    // Calcul basé sur le pourcentage pour les autres cas
+    const percentage = (available / total) * 100;
     if (percentage === 0) return { level: 'empty', color: 'bg-red-500', text: 'Rupture' };
-    if (percentage < 20) return { level: 'critical', color: 'bg-red-400', text: 'Critique' };
-    if (percentage < 50) return { level: 'low', color: 'bg-orange-400', text: 'Faible' };
+    if (percentage < 50) return { level: 'medium', color: 'bg-orange-400', text: 'Moyen' };
     return { level: 'good', color: 'bg-green-500', text: 'Bon' };
   };
 
@@ -190,7 +178,7 @@ const Stock: React.FC = () => {
                 <div>
                   <p className="text-sm text-gray-600">Stock Total</p>
                   <p className="text-2xl font-bold text-coca-black">
-                    {products.reduce((sum, p) => sum + p.stock_total, 0)}
+                    {products.reduce((sum, p) => sum + (p.stock_total || 0), 0)}
                   </p>
                 </div>
                 <Warehouse className="h-8 w-8 text-coca-red" />
@@ -210,7 +198,7 @@ const Stock: React.FC = () => {
                 <div>
                   <p className="text-sm text-gray-600">Disponible</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {products.reduce((sum, p) => sum + p.stock_available, 0)}
+                    {products.reduce((sum, p) => sum + (p.stock_available || 0), 0)}
                   </p>
                 </div>
                 <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
@@ -232,7 +220,7 @@ const Stock: React.FC = () => {
                 <div>
                   <p className="text-sm text-gray-600">Réservé</p>
                   <p className="text-2xl font-bold text-orange-600">
-                    {products.reduce((sum, p) => sum + p.stock_reserved, 0)}
+                    {products.reduce((sum, p) => sum + (p.stock_reserved || 0), 0)}
                   </p>
                 </div>
                 <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
@@ -254,7 +242,7 @@ const Stock: React.FC = () => {
                 <div>
                   <p className="text-sm text-gray-600">Alertes</p>
                   <p className="text-2xl font-bold text-red-600">
-                    {products.filter(p => p.stock_available < 10).length}
+                    {products.filter(p => (p.stock_available || 0) < 10).length}
                   </p>
                 </div>
                 <AlertTriangle className="h-8 w-8 text-red-500" />
@@ -289,13 +277,13 @@ const Stock: React.FC = () => {
                   <TableHead>Disponible</TableHead>
                   <TableHead>Réservé</TableHead>
                   <TableHead>Niveau</TableHead>
-                  <TableHead>Actions</TableHead>
+    
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {products.map((product, index) => {
                   const stockLevel = getStockLevel(product);
-                  const percentage = (product.stock_available / product.stock_total) * 100;
+                  const percentage = ((product.stock_available || 0) / (product.stock_total || 1)) * 100;
                   
                   return (
                     <motion.tr
@@ -343,34 +331,7 @@ const Stock: React.FC = () => {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleStockUpdate(product, 'in')}
-                            className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleStockUpdate(product, 'out')}
-                            className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleStockUpdate(product, 'adjustment')}
-                            className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white"
-                          >
-                            <RotateCcw className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+
                     </motion.tr>
                   );
                 })}
@@ -441,61 +402,7 @@ const Stock: React.FC = () => {
         </Card>
       </motion.div>
 
-      {/* Stock Update Modal */}
-      {showUpdateModal && selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
-          >
-            <h3 className="text-lg font-bold text-coca-black mb-4">
-              Mettre à jour le stock - {selectedProduct.name}
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantité (+ pour entrée, - pour sortie)
-                </label>
-                <Input
-                  type="number"
-                  value={updateQuantity}
-                  onChange={(e) => setUpdateQuantity(parseInt(e.target.value) || 0)}
-                  placeholder="Ex: +50 ou -25"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Raison du mouvement
-                </label>
-                <Input
-                  value={updateReason}
-                  onChange={(e) => setUpdateReason(e.target.value)}
-                  placeholder="Ex: Réapprovisionnement, Commande client..."
-                />
-              </div>
-              
-              <div className="flex justify-end space-x-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowUpdateModal(false)}
-                >
-                  Annuler
-                </Button>
-                <Button
-                  onClick={submitStockUpdate}
-                  className="bg-coca-red hover:bg-coca-red/90"
-                  disabled={updateQuantity === 0}
-                >
-                  Confirmer
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
+
     </div>
   );
 };

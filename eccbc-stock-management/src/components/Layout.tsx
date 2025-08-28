@@ -5,7 +5,11 @@ import {
   Warehouse, 
   ShoppingCart, 
   Menu, 
-  X
+  X,
+  BarChart3,
+  User,
+  Bell,
+  Search
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -18,7 +22,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'products', label: 'Produits', icon: Package },
     { id: 'stock', label: 'Stock', icon: Warehouse },
     { id: 'orders', label: 'Commandes', icon: ShoppingCart },
@@ -28,7 +32,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center">
             <div className="flex items-center space-x-4">
               <button
@@ -51,26 +55,96 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
             </div>
             
             {/* Navbar Pages - vraiment séparées maintenant */}
-            <div className="flex items-center space-x-8 ml-32">
+            <div className="flex items-center space-x-12 ml-24">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => onPageChange(item.id)}
-                  className={`relative font-semibold pb-1 transition-all duration-300 ${
+                  className={`relative font-medium text-base pb-1 px-2 py-1 rounded-md transition-all duration-700 ease-out ${
                     currentPage === item.id
                       ? 'text-red-600'
-                      : 'text-gray-700 hover:text-red-500'
+                      : 'text-gray-700 hover:text-red-500 hover:bg-gray-100'
                   }`}
                 >
                   {item.label.toUpperCase()}
                   {currentPage === item.id && (
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600 transition-all duration-300 ease-in-out"></span>
+                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600 transition-all duration-700 ease-out"></span>
                   )}
                   {currentPage !== item.id && (
-                    <span className="absolute bottom-0 left-0 h-0.5 bg-red-400 transition-all duration-300 ease-in-out w-0 hover:w-full"></span>
+                    <span className="absolute bottom-0 left-0 h-0.5 bg-red-400 transition-all duration-700 ease-out w-0 hover:w-full"></span>
                   )}
                 </button>
               ))}
+            </div>
+            
+            {/* Search Bar */}
+            <div className="ml-auto flex items-center space-x-6 mr-6">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search size={18} className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  className="w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300"
+                />
+              </div>
+              
+              {/* User & Notifications */}
+              <div className="flex items-center space-x-4">
+                <button 
+                className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-700 ease-out shadow-lg hover:shadow-xl group" 
+                style={{backgroundColor: '#fecaca'}}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#dc2626';
+                  const icon = e.currentTarget.querySelector('svg');
+                  if (icon) icon.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#fecaca';
+                  const icon = e.currentTarget.querySelector('svg');
+                  if (icon) icon.style.color = '#dc2626';
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.backgroundColor = '#b91c1c';
+                  const icon = e.currentTarget.querySelector('svg');
+                  if (icon) icon.style.color = 'white';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.backgroundColor = '#dc2626';
+                  const icon = e.currentTarget.querySelector('svg');
+                  if (icon) icon.style.color = 'white';
+                }}
+              >
+                <Bell size={24} className="text-red-600 transition-colors duration-700" />
+              </button>
+              <button 
+                className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-700 ease-out shadow-lg hover:shadow-xl group" 
+                style={{backgroundColor: '#fecaca'}}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#dc2626';
+                  const icon = e.currentTarget.querySelector('svg');
+                  if (icon) icon.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#fecaca';
+                  const icon = e.currentTarget.querySelector('svg');
+                  if (icon) icon.style.color = '#dc2626';
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.backgroundColor = '#b91c1c';
+                  const icon = e.currentTarget.querySelector('svg');
+                  if (icon) icon.style.color = 'white';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.backgroundColor = '#dc2626';
+                  const icon = e.currentTarget.querySelector('svg');
+                  if (icon) icon.style.color = 'white';
+                }}
+              >
+                <User size={24} className="text-red-600 transition-colors duration-700" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -78,8 +152,8 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className={`shadow-lg ${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden`} style={{backgroundColor: '#b91c1c'}}>
-          <nav className="p-4 space-y-2">
+        <aside className={`shadow-lg ${isSidebarOpen ? 'w-48' : 'w-0'} transition-all duration-300 overflow-hidden`} style={{backgroundColor: '#b91c1c'}}>
+          <nav className="space-y-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentPage === item.id;
@@ -88,18 +162,19 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                 <button
                   key={item.id}
                   onClick={() => onPageChange(item.id)}
-                  className={`w-full flex flex-col items-center space-y-2 px-4 py-6 rounded-lg text-left transition-all duration-500 ease-in-out text-white ${
+                  className={`w-full flex flex-col items-center space-y-2 px-4 py-6 text-left transition-all duration-700 ease-out text-white ${
                     isActive
-                      ? 'shadow-lg transform scale-105'
-                      : 'hover:bg-red-700 hover:bg-opacity-70 hover:scale-102'
+                      ? 'shadow-lg'
+                      : 'hover:bg-red-700 hover:bg-opacity-70'
                   }`}
                   style={isActive ? {backgroundColor: '#991b1b'} : {}}
                 >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500 ease-in-out ${
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-700 ease-out shadow-lg ${
                     isActive 
-                      ? 'bg-white' 
-                      : 'bg-white bg-opacity-20'
-                  }`}>
+                      ? 'bg-white shadow-xl' 
+                      : 'shadow-md'
+                  }`}
+                  style={!isActive ? {backgroundColor: '#dc2626'} : {}}>
                     <Icon size={24} className={isActive ? 'text-red-900' : 'text-white'} />
                   </div>
                   <span className="font-medium text-sm">{item.label}</span>
@@ -108,13 +183,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
             })}
           </nav>
 
-          {/* Branding */}
-          <div className="absolute bottom-4 left-4 right-4">
-            <div className="p-4 bg-red-950 rounded-lg text-white text-center">
-              <h3 className="font-bold text-lg">Coca-Cola</h3>
-              <p className="text-xs opacity-90">Embouteilleur ECCBC</p>
-            </div>
-          </div>
+
         </aside>
 
         {/* Main Content */}

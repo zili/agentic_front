@@ -8,17 +8,13 @@ import {
   Phone,
   User,
   Calendar,
-  Package,
-  CheckCircle,
-  Clock,
-  XCircle,
-  Truck
+  Package
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-// import { ordersApi, productsApi } from '../lib/api'; // Commented out for demo
+import { productsApi, ordersApi } from '../lib/api';
 import type { Order, Product } from '../types';
 
 const Orders: React.FC = () => {
@@ -55,82 +51,57 @@ const Orders: React.FC = () => {
         productsApi.getAll()
       ]);
       
-      setProducts(productsResponse.data);
-
-      // Mock orders for demo
-      const mockOrders: Order[] = [
-        {
-          id: '1',
-          order_number: 'CMD-2024-001',
-          customer_phone: '+237 677 123 456',
-          customer_name: 'Jean Dupont',
-          status: 'pending',
-          total: 2400,
-          items: [
-            {
-              id: '1',
-              product_id: '1',
-              product: productsResponse.data[0],
-              quantity: 4,
-              unit_price: 300,
-              total_price: 1200
-            },
-            {
-              id: '2',
-              product_id: '2',
-              product: productsResponse.data[1],
-              quantity: 4,
-              unit_price: 300,
-              total_price: 1200
-            }
-          ],
-          created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          order_number: 'CMD-2024-002',
-          customer_phone: '+237 655 987 654',
-          customer_name: 'Marie Kamga',
-          status: 'confirmed',
-          total: 1600,
-          items: [
-            {
-              id: '3',
-              product_id: '4',
-              product: productsResponse.data[3] || productsResponse.data[0],
-              quantity: 2,
-              unit_price: 800,
-              total_price: 1600
-            }
-          ],
-          created_at: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: '3',
-          order_number: 'CMD-2024-003',
-          customer_phone: '+237 699 456 789',
-          customer_name: 'Paul Mballa',
-          status: 'delivered',
-          total: 900,
-          items: [
-            {
-              id: '4',
-              product_id: '3',
-              product: productsResponse.data[2] || productsResponse.data[0],
-              quantity: 3,
-              unit_price: 300,
-              total_price: 900
-            }
-          ],
-          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
+      let ordersResponse;
+      try {
+        ordersResponse = await ordersApi.getAll();
+      } catch (error) {
+        console.error('Erreur lors de la récupération des commandes:', error);
+        console.log('L\'API orders n\'est pas disponible. Vérifiez que le serveur backend est démarré sur http://localhost:8000');
+        // Fallback avec des données vides si l'API n'est pas prête
+        ordersResponse = { data: [] };
+      }
       
-      setOrders(mockOrders);
-      setFilteredOrders(mockOrders);
+      // Adapter les données de l'API
+      const adaptedProducts = productsResponse.data.map((product: any) => ({
+        ...product,
+        id: product.id.toString(),
+        stock_available: product.available_quantity || 0,
+        stock_reserved: product.reserved_quantity || 0,
+        stock_total: product.stock_quantity || 0
+      }));
+      setProducts(adaptedProducts);
+
+      // Adapter les données de l'API pour les commandes
+      const adaptedOrders = ordersResponse.data.map((order: any) => ({
+        id: order.id.toString(),
+        order_number: order.order_number,
+        customer_phone: order.customer_phone,
+        customer_name: order.customer_name,
+        total: parseFloat(order.total_amount) || 0, // S'assurer que c'est un nombre
+        items: order.items ? order.items.filter((item: any) => item.id).map((item: any) => ({
+          id: item.id.toString(),
+          product_id: item.product_id.toString(),
+          product: adaptedProducts.find(p => p.id === item.product_id.toString()) || {
+            id: item.product_id.toString(),
+            name: item.product_name || 'Produit inconnu',
+            code: '',
+            price: item.unit_price,
+            stock_available: 0,
+            stock_reserved: 0,
+            stock_total: 0,
+            created_at: '',
+            updated_at: ''
+          },
+          quantity: item.quantity,
+          unit_price: parseFloat(item.unit_price) || 0,
+          total_price: parseFloat(item.total_price) || 0
+        })) : [],
+        created_at: order.created_at,
+        updated_at: order.updated_at
+      }));
+      
+      setOrders(adaptedOrders);
+      setFilteredOrders(adaptedOrders);
 
     } catch (error) {
       console.error('Error fetching orders data:', error);
@@ -139,54 +110,16 @@ const Orders: React.FC = () => {
     }
   };
 
-  const getStatusInfo = (status: Order['status']) => {
-    switch (status) {
-      case 'pending':
-        return { 
-          icon: Clock, 
-          color: 'bg-yellow-100 text-yellow-800 border-yellow-200', 
-          label: 'En attente',
-          textColor: 'text-yellow-600'
-        };
-      case 'confirmed':
-        return { 
-          icon: CheckCircle, 
-          color: 'bg-blue-100 text-blue-800 border-blue-200', 
-          label: 'Confirmée',
-          textColor: 'text-blue-600'
-        };
-      case 'delivered':
-        return { 
-          icon: Truck, 
-          color: 'bg-green-100 text-green-800 border-green-200', 
-          label: 'Livrée',
-          textColor: 'text-green-600'
-        };
-      case 'cancelled':
-        return { 
-          icon: XCircle, 
-          color: 'bg-red-100 text-red-800 border-red-200', 
-          label: 'Annulée',
-          textColor: 'text-red-600'
-        };
-      default:
-        return { 
-          icon: Clock, 
-          color: 'bg-gray-100 text-gray-800 border-gray-200', 
-          label: 'Inconnu',
-          textColor: 'text-gray-600'
-        };
-    }
-  };
+
 
   const getOrderStats = () => {
     const total = orders.length;
-    const pending = orders.filter(o => o.status === 'pending').length;
-    const confirmed = orders.filter(o => o.status === 'confirmed').length;
-    const delivered = orders.filter(o => o.status === 'delivered').length;
-    const revenue = orders.reduce((sum, o) => sum + o.total, 0);
+    const revenue = orders.reduce((sum, o) => {
+      const orderTotal = typeof o.total === 'number' ? o.total : parseFloat(o.total) || 0;
+      return sum + orderTotal;
+    }, 0);
 
-    return { total, pending, confirmed, delivered, revenue };
+    return { total, revenue };
   };
 
   const stats = getOrderStats();
@@ -225,7 +158,7 @@ const Orders: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -235,7 +168,7 @@ const Orders: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total</p>
+                  <p className="text-sm text-gray-600">Total Commandes</p>
                   <p className="text-2xl font-bold text-coca-black">{stats.total}</p>
                 </div>
                 <ShoppingCart className="h-8 w-8 text-coca-red" />
@@ -253,65 +186,11 @@ const Orders: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">En attente</p>
-                  <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-                </div>
-                <Clock className="h-8 w-8 text-yellow-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-        >
-          <Card className="coca-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Confirmées</p>
-                  <p className="text-2xl font-bold text-blue-600">{stats.confirmed}</p>
-                </div>
-                <CheckCircle className="h-8 w-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-        >
-          <Card className="coca-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Livrées</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.delivered}</p>
-                </div>
-                <Truck className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-        >
-          <Card className="coca-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
                   <p className="text-sm text-gray-600">Chiffre d'affaires</p>
-                  <p className="text-xl font-bold text-coca-red">{stats.revenue.toLocaleString()} FCFA</p>
+                                      <p className="text-xl font-bold text-coca-red">{stats.revenue.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD</p>
                 </div>
                 <div className="w-8 h-8 bg-coca-red rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">₣</span>
+                  <span className="text-white font-bold text-xs">د.م</span>
                 </div>
               </div>
             </CardContent>
@@ -362,15 +241,12 @@ const Orders: React.FC = () => {
                   <TableHead>Date</TableHead>
                   <TableHead>Articles</TableHead>
                   <TableHead>Total</TableHead>
-                  <TableHead>Statut</TableHead>
+    
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredOrders.map((order, index) => {
-                  const statusInfo = getStatusInfo(order.status);
-                  const StatusIcon = statusInfo.icon;
-                  
                   return (
                     <motion.tr
                       key={order.id}
@@ -418,15 +294,10 @@ const Orders: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <span className="font-bold text-coca-red text-lg">
-                          {order.total.toLocaleString()} FCFA
+                          {order.total.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD
                         </span>
                       </TableCell>
-                      <TableCell>
-                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${statusInfo.color}`}>
-                          <StatusIcon className="h-3 w-3 mr-1" />
-                          {statusInfo.label}
-                        </div>
-                      </TableCell>
+
                       <TableCell>
                         <Button 
                           variant="ghost" 
@@ -452,7 +323,10 @@ const Orders: React.FC = () => {
                 <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">Aucune commande trouvée</p>
                 <p className="text-sm text-gray-400">
-                  {searchTerm ? 'Essayez de modifier votre recherche' : 'Les nouvelles commandes apparaîtront ici'}
+                  {searchTerm ? 'Essayez de modifier votre recherche' : 'Vérifiez que le serveur backend est démarré sur http://localhost:8000'}
+                </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  L'API Swagger fonctionne - les commandes s'afficheront une fois la connexion établie
                 </p>
               </div>
             )}
@@ -489,12 +363,7 @@ const Orders: React.FC = () => {
                   <div className="space-y-2 text-sm">
                     <p><span className="font-medium">Numéro:</span> {selectedOrder.order_number}</p>
                     <p><span className="font-medium">Date:</span> {new Date(selectedOrder.created_at).toLocaleString('fr-FR')}</p>
-                    <p>
-                      <span className="font-medium">Statut:</span> 
-                      <span className={`ml-2 px-2 py-1 rounded-full text-xs ${getStatusInfo(selectedOrder.status).color}`}>
-                        {getStatusInfo(selectedOrder.status).label}
-                      </span>
-                    </p>
+
                   </div>
                 </div>
                 
@@ -523,8 +392,8 @@ const Orders: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">{item.quantity} × {item.unit_price.toLocaleString()} FCFA</p>
-                        <p className="text-lg font-bold text-coca-red">{item.total_price.toLocaleString()} FCFA</p>
+                        <p className="font-medium">{item.quantity} × {item.unit_price.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD</p>
+                        <p className="text-lg font-bold text-coca-red">{item.total_price.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD</p>
                       </div>
                     </div>
                   ))}
@@ -535,7 +404,7 @@ const Orders: React.FC = () => {
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between items-center">
                   <span className="text-xl font-semibold text-coca-black">Total de la commande</span>
-                  <span className="text-2xl font-bold text-coca-red">{selectedOrder.total.toLocaleString()} FCFA</span>
+                  <span className="text-2xl font-bold text-coca-red">{selectedOrder.total.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD</span>
                 </div>
               </div>
 
@@ -544,16 +413,7 @@ const Orders: React.FC = () => {
                 <Button variant="outline" onClick={() => setShowOrderModal(false)}>
                   Fermer
                 </Button>
-                {selectedOrder.status === 'pending' && (
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    Confirmer la commande
-                  </Button>
-                )}
-                {selectedOrder.status === 'confirmed' && (
-                  <Button className="bg-green-600 hover:bg-green-700">
-                    Marquer comme livrée
-                  </Button>
-                )}
+
               </div>
             </div>
           </motion.div>

@@ -306,6 +306,40 @@ async def create_order(order: OrderCreate):
             "message": "Commande créée avec succès"
         }
 
+@app.get("/api/orders/all", response_model=List[dict])
+async def get_all_orders(limit: int = 50):
+    """Récupérer toutes les commandes"""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            
+            # D'abord récupérer les commandes de base - version simple
+            cursor.execute("""
+                SELECT * FROM orders 
+                ORDER BY created_at DESC 
+                LIMIT %s
+            """, (limit,))
+            
+            orders = cursor.fetchall()
+            
+            # Pour chaque commande, récupérer ses items
+            for order in orders:
+                cursor.execute("""
+                    SELECT oi.*, p.name as product_name
+                    FROM order_items oi
+                    LEFT JOIN products p ON oi.product_id = p.id
+                    WHERE oi.order_id = %s
+                """, (order['id'],))
+                
+                items = cursor.fetchall()
+                order['items'] = list(items) if items else []
+            
+            return list(orders)
+            
+    except Exception as e:
+        print(f"Erreur lors de la récupération des commandes: {e}")
+        return []
+
 @app.get("/api/orders/{customer_phone}")
 async def get_customer_orders(customer_phone: str, limit: int = 10):
     """Récupérer l'historique des commandes d'un client"""

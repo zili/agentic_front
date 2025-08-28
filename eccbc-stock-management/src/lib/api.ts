@@ -32,7 +32,7 @@ export const stockApi = {
 export const ordersApi = {
   create: (order: any) => api.post('/orders', order),
   getByCustomer: (customerPhone: string) => api.get(`/orders/${customerPhone}`),
-  getAll: () => api.get('/orders'),
+  getAll: () => api.get('/orders/all'),
   getById: (id: string) => api.get(`/orders/details/${id}`),
   updateStatus: (id: string, status: string) => 
     api.put(`/orders/${id}/status`, { status }),
