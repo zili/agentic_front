@@ -1,5 +1,5 @@
 import axios from 'axios';
-// import { Product, Order, StockMovement } from '../types'; // Commented out for demo
+import type { Product, Order, StockMovement } from '../types/index';
 
 const API_BASE_URL = 'http://localhost:8000/api';
 

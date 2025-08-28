@@ -9,7 +9,8 @@ import {
   User,
   Bell,
   Search,
-  Clock
+  Clock,
+  LogOut
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -24,6 +25,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
   const [recentOrders, setRecentOrders] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [seenOrderIds, setSeenOrderIds] = useState<Set<string>>(new Set());
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -62,12 +64,15 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
     return () => clearInterval(interval);
   }, [fetchRecentOrders]); // Dépendance sur fetchRecentOrders
 
-  // Fermer le dropdown quand on clique ailleurs
+  // Fermer les dropdowns quand on clique ailleurs
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       if (showNotifications && !target.closest('.notification-dropdown')) {
         setShowNotifications(false);
+      }
+      if (showUserMenu && !target.closest('.user-menu')) {
+        setShowUserMenu(false);
       }
     };
 
@@ -75,7 +80,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showNotifications]);
+  }, [showNotifications, showUserMenu]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -242,32 +247,57 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                     </div>
                   )}
                 </div>
-              <button 
-                className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-700 ease-out shadow-lg hover:shadow-xl group" 
-                style={{backgroundColor: '#fecaca'}}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#dc2626';
-                  const icon = e.currentTarget.querySelector('svg');
-                  if (icon) icon.style.color = 'white';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#fecaca';
-                  const icon = e.currentTarget.querySelector('svg');
-                  if (icon) icon.style.color = '#dc2626';
-                }}
-                onMouseDown={(e) => {
-                  e.currentTarget.style.backgroundColor = '#b91c1c';
-                  const icon = e.currentTarget.querySelector('svg');
-                  if (icon) icon.style.color = 'white';
-                }}
-                onMouseUp={(e) => {
-                  e.currentTarget.style.backgroundColor = '#dc2626';
-                  const icon = e.currentTarget.querySelector('svg');
-                  if (icon) icon.style.color = 'white';
-                }}
-              >
-                <User size={24} className="text-red-600 transition-colors duration-700" />
-                </button>
+                              <div className="relative user-menu">
+                  <button 
+                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-700 ease-out shadow-lg hover:shadow-xl group" 
+                    style={{backgroundColor: '#fecaca'}}
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#dc2626';
+                      const icon = e.currentTarget.querySelector('svg');
+                      if (icon) icon.style.color = 'white';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#fecaca';
+                      const icon = e.currentTarget.querySelector('svg');
+                      if (icon) icon.style.color = '#dc2626';
+                    }}
+                    onMouseDown={(e) => {
+                      e.currentTarget.style.backgroundColor = '#b91c1c';
+                      const icon = e.currentTarget.querySelector('svg');
+                      if (icon) icon.style.color = 'white';
+                    }}
+                    onMouseUp={(e) => {
+                      e.currentTarget.style.backgroundColor = '#dc2626';
+                      const icon = e.currentTarget.querySelector('svg');
+                      if (icon) icon.style.color = 'white';
+                    }}
+                  >
+                    <User size={24} className="text-red-600 transition-colors duration-700" />
+                  </button>
+
+                  {/* Menu utilisateur */}
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-200 z-50">
+                      <div className="p-2">
+                        <button
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            // Logique de déconnexion directe
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            // Recharger la page pour revenir à l'état initial
+                            window.location.reload();
+                          }}
+                          className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors"
+                        >
+                          <LogOut size={16} />
+                          <span>Se déconnecter</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

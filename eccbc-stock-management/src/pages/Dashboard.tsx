@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Package, 
   Warehouse, 
   ShoppingCart, 
   TrendingUp,
   AlertTriangle,
-  BarChart3,
-  Activity
+  Activity,
+  DollarSign
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import type { Product, Order } from '../types';
 import { productsApi, ordersApi } from '../lib/api';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+
 
 interface DashboardStats {
   total_products: number;
   total_stock: number;
   recent_orders: number;
   low_stock_products: number;
+  total_revenue: number;
 }
 
 const Dashboard: React.FC = () => {
@@ -65,15 +65,19 @@ const Dashboard: React.FC = () => {
 
         // Calculer les statistiques depuis les vraies données
         const totalProducts = products.length;
-        const totalStock = products.reduce((sum, p) => sum + p.stock_total, 0);
+        const totalStock = products.reduce((sum: number, p: any) => sum + (p.stock_total || 0), 0);
         const recentOrdersCount = recentOrders.length;
-        const lowStock = products.filter(p => p.stock_available < 10);
+        const lowStock = products.filter((p: any) => (p.stock_available || 0) < 10);
+        
+        // Calculer le chiffre d'affaires total
+        const totalRevenue = recentOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
 
         setStats({
           total_products: totalProducts,
           total_stock: totalStock,
           recent_orders: recentOrdersCount,
-          low_stock_products: lowStock.length
+          low_stock_products: lowStock.length,
+          total_revenue: totalRevenue
         });
 
         setLowStockProducts(lowStock);
@@ -89,20 +93,7 @@ const Dashboard: React.FC = () => {
     fetchDashboardData();
   }, []);
 
-  // Sample data for charts
-  const stockData = [
-    { name: 'Coca-Cola 33cl', stock: 150, reserved: 20 },
-    { name: 'Fanta Orange 33cl', stock: 120, reserved: 15 },
-    { name: 'Sprite 33cl', stock: 80, reserved: 10 },
-    { name: 'Coca-Cola 1.5L', stock: 60, reserved: 8 },
-    { name: 'Fanta Orange 1.5L', stock: 45, reserved: 5 },
-  ];
 
-  const pieData = [
-    { name: 'En stock', value: 85, color: '#22C55E' },
-    { name: 'Stock faible', value: 10, color: '#F59E0B' },
-    { name: 'Rupture', value: 5, color: '#E50914' },
-  ];
 
   const statCards = [
     {
@@ -125,14 +116,22 @@ const Dashboard: React.FC = () => {
       icon: AlertTriangle,
       color: 'bg-red-600',
       change: '-2'
+    },
+    {
+      title: 'Chiffre d\'affaires',
+      value: stats?.total_revenue || 0,
+      icon: DollarSign,
+      color: 'bg-red-700',
+      change: '+15%',
+      format: 'currency'
     }
   ];
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader className="pb-2">
                 <div className="h-4 bg-gray-300 rounded w-3/4"></div>
@@ -162,7 +161,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card, index) => {
           const Icon = card.icon;
           return (
@@ -173,28 +172,31 @@ const Dashboard: React.FC = () => {
               transition={{ duration: 0.4, delay: index * 0.1 }}
             >
               <Card className={`hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer rounded-3xl ${
-                index === 2 ? 'bg-red-600 text-white border-red-600 hover:bg-red-700' : 'bg-white hover:bg-gray-50'
+                index === 2 ? 'bg-red-600 text-white border-red-600 hover:bg-red-700' : 
+                index === 3 ? 'bg-red-700 text-white border-red-700 hover:bg-red-800' : 'bg-white hover:bg-gray-50'
               }`}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className={`text-base font-semibold ${
-                    index === 2 ? 'text-white' : 'text-gray-600'
+                    index === 2 || index === 3 ? 'text-white' : 'text-gray-600'
                   }`}>
                     {card.title}
                   </CardTitle>
                   <div className={`p-2 rounded-lg ${
-                    index === 2 ? 'bg-white bg-opacity-20' : card.color
+                    index === 2 || index === 3 ? 'bg-white bg-opacity-20' : card.color
                   }`}>
                     <Icon className="h-4 w-4 text-white" />
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className={`text-2xl font-bold ${
-                    index === 2 ? 'text-white' : 'text-gray-900'
+                    index === 2 || index === 3 ? 'text-white' : 'text-gray-900'
                   }`}>
-                    {card.value.toLocaleString()}
+                    {(card as any).format === 'currency' 
+                      ? `${(card.value as number).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MAD`
+                      : (card.value as number).toLocaleString()}
                   </div>
                   <p className={`text-xs flex items-center mt-1 ${
-                    index === 2 ? 'text-white opacity-90' : 'text-green-600'
+                    index === 2 || index === 3 ? 'text-white opacity-90' : 'text-green-600'
                   }`}>
                     <TrendingUp size={12} className="mr-1" />
                     {card.change} vs mois dernier

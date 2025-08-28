@@ -42,70 +42,13 @@ const Stock: React.FC = () => {
       }));
       setProducts(adaptedProducts);
 
-      // TODO: Remplacer par un vrai appel API quand l'endpoint stock movements sera prêt
-      // Mock stock movements for demo
-      const mockMovements: StockMovement[] = [
-        {
-          id: '1',
-          product_id: 1,
-          product: adaptedProducts[0],
-          movement_type: 'in',
-          quantity: 50,
-          reason: 'Réapprovisionnement',
-          created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-          created_by: 'Admin'
-        },
-        {
-          id: '2',
-          product_id: 2,
-          product: adaptedProducts[1],
-          movement_type: 'out',
-          quantity: 25,
-          reason: 'Commande client',
-          created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-          created_by: 'Système'
-        },
-        {
-          id: '3',
-          product_id: 1,
-          product: adaptedProducts[0],
-          movement_type: 'adjustment',
-          quantity: -5,
-          reason: 'Inventaire - produits endommagés',
-          created_at: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
-          created_by: 'Admin'
-        }
-      ];
-      setStockMovements(mockMovements);
+      // Les mouvements de stock seront ajoutés quand l'endpoint API sera disponible
+      setStockMovements([]);
 
     } catch (error) {
-      console.error('Error fetching stock data:', error);
-      // Mock data for demo
-      const mockProducts: Product[] = [
-        {
-          id: '1',
-          code: 'CC-33CL',
-          name: 'Coca-Cola 33cl',
-          price: 300,
-          stock_available: 150,
-          stock_reserved: 20,
-          stock_total: 170,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          code: 'FO-33CL',
-          name: 'Fanta Orange 33cl',
-          price: 300,
-          stock_available: 120,
-          stock_reserved: 15,
-          stock_total: 135,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
-      setProducts(mockProducts);
+      console.error('Erreur lors de la récupération des données de stock:', error);
+      setProducts([]);
+      setStockMovements([]);
     } finally {
       setLoading(false);
     }
