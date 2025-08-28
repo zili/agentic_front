@@ -67,7 +67,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative z-10 w-full max-w-md"
+                 className="relative z-10 w-full max-w-md"
       >
         {/* Logo et titre */}
         <div className="text-center mb-8">
@@ -83,22 +83,22 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               className="h-20 mx-auto mb-4 drop-shadow-lg"
             />
           </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-3xl font-bold text-gray-900 mb-2"
-          >
-            ECCBC
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="text-gray-600 text-lg"
-          >
-            Système de Gestion
-          </motion.p>
+                     <motion.h1
+             initial={{ opacity: 0, y: 10 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ duration: 0.5, delay: 0.3 }}
+             className="text-3xl font-bold text-gray-900 mb-1"
+           >
+             ECCBC
+           </motion.h1>
+                      <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="text-red-600 text-2xl"
+            >
+              Stock Management System
+            </motion.p>
         </div>
 
         {/* Carte de connexion */}
@@ -108,7 +108,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           transition={{ duration: 0.6, delay: 0.5 }}
         >
           <Card className="backdrop-blur-sm bg-white/80 border-0 shadow-2xl rounded-3xl overflow-hidden">
-            <CardContent className="p-8">
+                         <CardContent className="p-10">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   Connexion
@@ -207,20 +207,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 </Button>
               </form>
 
-              {/* Informations de connexion */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-2">
-                    <strong>Compte Admin par défaut :</strong>
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    <strong>Utilisateur :</strong> admin
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    <strong>Mot de passe :</strong> ECCBC2024!
-                  </p>
-                </div>
-              </div>
+              
             </CardContent>
           </Card>
         </motion.div>
@@ -232,9 +219,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           transition={{ duration: 0.5, delay: 0.8 }}
           className="text-center mt-8"
         >
-          <p className="text-sm text-gray-500">
-            © 2024 ECCBC. Tous droits réservés.
-          </p>
+                     <p className="text-sm text-gray-500">
+             © 2025 ECCBC. Tous droits réservés.
+           </p>
         </motion.div>
       </motion.div>
     </div>

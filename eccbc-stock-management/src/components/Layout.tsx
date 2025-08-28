@@ -9,7 +9,8 @@ import {
   BarChart3,
   Package,
   Box,
-  Warehouse
+  Warehouse,
+  Search
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -69,23 +70,117 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-24">
             {/* Logo */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-4 ml-4">
+                <div className="flex items-center space-x-3">
                 <img
                   src="/ECCBC_Logo.png"
                   alt="ECCBC Logo"
-                  className="h-8 w-auto"
+                  className="h-20 w-auto"
                 />
-                <span className="text-xl font-bold text-gray-900 hidden sm:block">
-                  ECCBC
+                <span className="text-lg text-red-600 hidden sm:block">
+                  Stock Management System
                 </span>
               </div>
             </div>
 
+            {/* Navigation centrale */}
+            <div className="hidden md:flex items-center space-x-8">
+              <motion.button
+                onClick={() => onPageChange('dashboard')}
+                className={`px-6 py-3 font-medium text-lg transition-all duration-300 relative ${
+                  currentPage === 'dashboard' 
+                    ? 'text-red-600' 
+                    : 'text-gray-600 hover:text-red-600'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Dashboard
+                {currentPage === 'dashboard' && (
+                  <motion.div
+                    className="absolute bottom-1 left-2 right-2 h-0.5 bg-red-600 rounded-full"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                )}
+              </motion.button>
+              <motion.button
+                onClick={() => onPageChange('orders')}
+                className={`px-6 py-3 font-medium text-lg transition-all duration-300 relative ${
+                  currentPage === 'orders' 
+                    ? 'text-red-600' 
+                    : 'text-gray-600 hover:text-red-600'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Commandes
+                {currentPage === 'orders' && (
+                  <motion.div
+                    className="absolute bottom-1 left-2 right-2 h-0.5 bg-red-600 rounded-full"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                )}
+              </motion.button>
+              <motion.button
+                onClick={() => onPageChange('products')}
+                className={`px-6 py-3 font-medium text-lg transition-all duration-300 relative ${
+                  currentPage === 'products' 
+                    ? 'text-red-600' 
+                    : 'text-gray-600 hover:text-red-600'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Produits
+                {currentPage === 'products' && (
+                  <motion.div
+                    className="absolute bottom-1 left-2 right-2 h-0.5 bg-red-600 rounded-full"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                )}
+              </motion.button>
+              <motion.button
+                onClick={() => onPageChange('stock')}
+                className={`px-6 py-3 font-medium text-lg transition-all duration-300 relative ${
+                  currentPage === 'stock' 
+                    ? 'text-red-600' 
+                    : 'text-gray-600 hover:text-red-600'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Stock
+                {currentPage === 'stock' && (
+                  <motion.div
+                    className="absolute bottom-1 left-2 right-2 h-0.5 bg-red-600 rounded-full"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                )}
+              </motion.button>
+            </div>
+
             {/* Actions de droite */}
             <div className="flex items-center space-x-4">
+              {/* Barre de recherche */}
+              <div className="relative hidden lg:block">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  className="pl-10 pr-4 py-2 w-64 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+              </div>
+
               {/* Sélecteur de langue */}
               <div className="relative">
                 <button

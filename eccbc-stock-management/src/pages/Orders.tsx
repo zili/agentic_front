@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+ 
+ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Search, 
@@ -119,45 +120,45 @@ const Orders: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-2xl coca-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
                   {t('total')} {t('orders')}
                 </p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-800">
                   {totalOrders}
                 </p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <ShoppingCart className="h-6 w-6 text-blue-600" />
-              </div>
+                             <div className="p-3 bg-blue-100 rounded-xl">
+                 <ShoppingCart className="h-6 w-6 text-blue-600" />
+               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl shadow-lg">
+        <Card className="rounded-2xl coca-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
                   {t('revenue')}
                 </p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-800">
                   {formatCurrency(totalRevenue)} MAD
                 </p>
               </div>
-              <div className="p-3 bg-green-100 rounded-xl">
-                <DollarSign className="h-6 w-6 text-green-600" />
-              </div>
+                             <div className="p-3 bg-green-100 rounded-xl">
+                 <DollarSign className="h-6 w-6 text-green-600" />
+               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Search and Filters */}
-      <Card className="rounded-2xl shadow-lg">
+      <Card className="rounded-2xl coca-shadow">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -169,7 +170,7 @@ const Orders: React.FC = () => {
                 className="pl-10 rounded-xl"
               />
             </div>
-            <Button variant="outline" className="rounded-xl">
+            <Button variant="outline" className="rounded-xl border-gray-300 text-gray-700 hover:bg-gray-50">
               <Filter className="h-4 w-4 mr-2" />
               {t('filters')}
             </Button>
@@ -178,7 +179,7 @@ const Orders: React.FC = () => {
       </Card>
 
       {/* Orders Table */}
-      <Card className="rounded-2xl shadow-lg">
+      <Card className="rounded-2xl coca-shadow">
         <CardHeader>
           <CardTitle className="text-xl font-bold">
             {t('ordersList')}
