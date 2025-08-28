@@ -5,9 +5,12 @@ from typing import List, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 from contextlib import contextmanager
+import bcrypt
+import jwt
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 app = FastAPI(title="ECCBC Stock Management API", version="1.0.0")
 
@@ -380,6 +383,303 @@ async def health_check():
         return {"status": "healthy", "timestamp": datetime.now()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de base de données: {str(e)}")
+
+# Configuration JWT
+SECRET_KEY = "eccbc-secret-key-2024-super-secure"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 heures
+
+security = HTTPBearer()
+
+# Modèles d'authentification
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: dict
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    role: str
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+# Service d'authentification
+class AuthService:
+    @staticmethod
+    def verify_password(plain_password: str, hashed_password: str) -> bool:
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    
+    @staticmethod
+    def create_access_token(data: dict):
+        to_encode = data.copy()
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        return encoded_jwt
+    
+    @staticmethod
+    def verify_token(token: str):
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username: str = payload.get("sub")
+            if username is None:
+                return None
+            return payload
+        except jwt.PyJWTError:
+            return None
+    
+    @staticmethod
+    def authenticate_user(username: str, password: str):
+        with get_db_connection() as conn:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT * FROM users WHERE username = %s",
+                (username,)
+            )
+            user = cursor.fetchone()
+            
+            if not user:
+                return None
+            
+            if not user['is_active']:
+                return None
+            
+            if not AuthService.verify_password(password, user['password_hash']):
+                return None
+            
+            return user
+
+# Routes d'authentification
+@app.post("/api/auth/login", response_model=Token)
+async def login(user_credentials: UserLogin):
+    """Authentifier un utilisateur et retourner un token JWT"""
+    user = AuthService.authenticate_user(user_credentials.username, user_credentials.password)
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Nom d'utilisateur ou mot de passe incorrect",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token = AuthService.create_access_token(
+        data={"sub": user['username'], "role": user['role']}
+    )
+    
+    return Token(
+        access_token=access_token,
+        user={
+            "id": user['id'],
+            "username": user['username'],
+            "role": user['role'],
+            "is_active": user['is_active'],
+            "created_at": user['created_at'],
+            "updated_at": user['updated_at']
+        }
+    )
+
+@app.get("/api/auth/me", response_model=UserResponse)
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Récupérer les informations de l'utilisateur actuel"""
+    payload = AuthService.verify_token(credentials.credentials)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalide",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    username: str = payload.get("sub")
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalide",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    with get_db_connection() as conn:
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute(
+            "SELECT * FROM users WHERE username = %s",
+            (username,)
+        )
+        user = cursor.fetchone()
+        
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Utilisateur non trouvé",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        return UserResponse(**user)
+
+@app.post("/api/auth/verify")
+async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Vérifier si un token JWT est valide"""
+    payload = AuthService.verify_token(credentials.credentials)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalide"
+        )
+    return {"valid": True, "username": payload.get("sub")}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+# Configuration JWT
+SECRET_KEY = "eccbc-secret-key-2024-super-secure"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 heures
+
+security = HTTPBearer()
+
+# Modèles d'authentification
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: dict
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    role: str
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+# Service d'authentification
+class AuthService:
+    @staticmethod
+    def verify_password(plain_password: str, hashed_password: str) -> bool:
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    
+    @staticmethod
+    def create_access_token(data: dict):
+        to_encode = data.copy()
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        return encoded_jwt
+    
+    @staticmethod
+    def verify_token(token: str):
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username: str = payload.get("sub")
+            if username is None:
+                return None
+            return payload
+        except jwt.PyJWTError:
+            return None
+    
+    @staticmethod
+    def authenticate_user(username: str, password: str):
+        with get_db_connection() as conn:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT * FROM users WHERE username = %s",
+                (username,)
+            )
+            user = cursor.fetchone()
+            
+            if not user:
+                return None
+            
+            if not user['is_active']:
+                return None
+            
+            if not AuthService.verify_password(password, user['password_hash']):
+                return None
+            
+            return user
+
+# Routes d'authentification
+@app.post("/api/auth/login", response_model=Token)
+async def login(user_credentials: UserLogin):
+    """Authentifier un utilisateur et retourner un token JWT"""
+    user = AuthService.authenticate_user(user_credentials.username, user_credentials.password)
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Nom d'utilisateur ou mot de passe incorrect",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token = AuthService.create_access_token(
+        data={"sub": user['username'], "role": user['role']}
+    )
+    
+    return Token(
+        access_token=access_token,
+        user={
+            "id": user['id'],
+            "username": user['username'],
+            "role": user['role'],
+            "is_active": user['is_active'],
+            "created_at": user['created_at'],
+            "updated_at": user['updated_at']
+        }
+    )
+
+@app.get("/api/auth/me", response_model=UserResponse)
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Récupérer les informations de l'utilisateur actuel"""
+    payload = AuthService.verify_token(credentials.credentials)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalide",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    username: str = payload.get("sub")
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalide",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    with get_db_connection() as conn:
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute(
+            "SELECT * FROM users WHERE username = %s",
+            (username,)
+        )
+        user = cursor.fetchone()
+        
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Utilisateur non trouvé",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        return UserResponse(**user)
+
+@app.post("/api/auth/verify")
+async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Vérifier si un token JWT est valide"""
+    payload = AuthService.verify_token(credentials.credentials)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalide"
+        )
+    return {"valid": True, "username": payload.get("sub")}
 
 if __name__ == "__main__":
     import uvicorn

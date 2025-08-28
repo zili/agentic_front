@@ -11,6 +11,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import type { Product, Order } from '../types';
 import { productsApi, ordersApi } from '../lib/api';
+import { useTranslation } from '../hooks/useTranslation';
 
 
 interface DashboardStats {
@@ -22,6 +23,7 @@ interface DashboardStats {
 }
 
 const Dashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
@@ -97,28 +99,28 @@ const Dashboard: React.FC = () => {
 
   const statCards = [
     {
-      title: 'Stock Total',
+      title: t('totalStock'),
       value: stats?.total_stock || 0,
       icon: Warehouse,
       color: 'bg-red-600',
       change: '+12%'
     },
     {
-      title: 'Commandes (7j)',
+      title: t('orders7d'),
       value: stats?.recent_orders || 0,
       icon: ShoppingCart,
       color: 'bg-red-600',
       change: '+8%'
     },
     {
-      title: 'Stock Critique',
+      title: t('criticalStock'),
       value: stats?.low_stock_products || 0,
       icon: AlertTriangle,
       color: 'bg-red-600',
       change: '-2'
     },
     {
-      title: 'Chiffre d\'affaires',
+      title: t('revenue'),
       value: stats?.total_revenue || 0,
       icon: DollarSign,
       color: 'bg-red-700',
@@ -151,12 +153,12 @@ const Dashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('dashboard')}</h1>
           <p className="text-gray-600 mt-2">Vue d'ensemble de votre activité ECCBC</p>
         </div>
         <div className="flex items-center space-x-2 text-sm text-gray-500">
           <Activity size={16} />
-          <span>Mis à jour il y a 2 minutes</span>
+          <span>{t('updatedMinutesAgo')}</span>
         </div>
       </div>
 
@@ -199,7 +201,7 @@ const Dashboard: React.FC = () => {
                     index === 2 || index === 3 ? 'text-white opacity-90' : 'text-green-600'
                   }`}>
                     <TrendingUp size={12} className="mr-1" />
-                    {card.change} vs mois dernier
+                    {card.change} {t('vsLastMonth')}
                   </p>
                 </CardContent>
               </Card>

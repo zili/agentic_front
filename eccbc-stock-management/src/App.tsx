@@ -4,10 +4,13 @@ import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Stock from './pages/Stock';
 import Orders from './pages/Orders';
+import Login from './pages/Login';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './index.css';
 
-function App() {
+function AppContent() {
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const { isAuthenticated, isLoading, login } = useAuth();
 
   const renderPage = () => {
     switch (currentPage) {
@@ -24,10 +27,36 @@ function App() {
     }
   };
 
+  // Afficher un loader pendant la vérification de l'authentification
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si non authentifié, afficher la page de login
+  if (!isAuthenticated) {
+    return <Login onLogin={login} />;
+  }
+
+  // Si authentifié, afficher l'application
   return (
     <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
       {renderPage()}
     </Layout>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

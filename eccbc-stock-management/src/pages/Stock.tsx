@@ -13,9 +13,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { productsApi } from '../lib/api';
+import { useTranslation } from '../hooks/useTranslation';
 import type { Product, StockMovement } from '../types';
 
 const Stock: React.FC = () => {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,14 +63,14 @@ const Stock: React.FC = () => {
     const total = product.stock_total || 0;
     
     // Si moins de 10 unités disponibles : Rouge et "Faible"
-    if (available < 10) return { level: 'low', color: 'bg-red-500', text: 'Faible' };
+    if (available < 10) return { level: 'low', color: 'bg-red-500', text: t('faible') };
     
     // Si stock total est 0 : Rupture
-    if (total === 0) return { level: 'empty', color: 'bg-red-500', text: 'Rupture' };
+    if (total === 0) return { level: 'empty', color: 'bg-red-500', text: t('rupture') };
     
     // Calcul basé sur le pourcentage pour les autres cas
     const percentage = (available / total) * 100;
-    if (percentage === 0) return { level: 'empty', color: 'bg-red-500', text: 'Rupture' };
+    if (percentage === 0) return { level: 'empty', color: 'bg-red-500', text: t('rupture') };
     if (percentage < 50) return { level: 'medium', color: 'bg-orange-400', text: 'Moyen' };
     return { level: 'good', color: 'bg-green-500', text: 'Bon' };
   };
@@ -103,8 +105,8 @@ const Stock: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-coca-black">Gestion du Stock</h1>
-          <p className="text-gray-600 mt-2">Suivez et gérez vos niveaux de stock en temps réel</p>
+          <h1 className="text-3xl font-bold text-coca-black">{t('stockManagement')}</h1>
+          <p className="text-gray-600 mt-2">{t('manageProducts')}</p>
         </div>
       </div>
 
@@ -119,7 +121,7 @@ const Stock: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Stock Total</p>
+                  <p className="text-sm text-gray-600">{t('totalStock')}</p>
                   <p className="text-2xl font-bold text-coca-black">
                     {products.reduce((sum, p) => sum + (p.stock_total || 0), 0)}
                   </p>
@@ -139,7 +141,7 @@ const Stock: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Disponible</p>
+                  <p className="text-sm text-gray-600">{t('inStock')}</p>
                   <p className="text-2xl font-bold text-green-600">
                     {products.reduce((sum, p) => sum + (p.stock_available || 0), 0)}
                   </p>
@@ -161,7 +163,7 @@ const Stock: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Réservé</p>
+                  <p className="text-sm text-gray-600">{t('reservedStock')}</p>
                   <p className="text-2xl font-bold text-orange-600">
                     {products.reduce((sum, p) => sum + (p.stock_reserved || 0), 0)}
                   </p>
@@ -183,7 +185,7 @@ const Stock: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Alertes</p>
+                  <p className="text-sm text-gray-600">{t('lowStock')}</p>
                   <p className="text-2xl font-bold text-red-600">
                     {products.filter(p => (p.stock_available || 0) < 10).length}
                   </p>
@@ -215,11 +217,11 @@ const Stock: React.FC = () => {
             <Table className="rounded-xl overflow-hidden">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Produit</TableHead>
-                  <TableHead>Stock Total</TableHead>
-                  <TableHead>Disponible</TableHead>
-                  <TableHead>Réservé</TableHead>
-                  <TableHead>Niveau</TableHead>
+                  <TableHead>{t('productName')}</TableHead>
+                  <TableHead>{t('totalStock')}</TableHead>
+                  <TableHead>{t('availableStock')}</TableHead>
+                  <TableHead>{t('reservedStock')}</TableHead>
+                  <TableHead>{t('stockLevel')}</TableHead>
     
                 </TableRow>
               </TableHeader>

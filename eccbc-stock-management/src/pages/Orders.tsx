@@ -1,140 +1,105 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  ShoppingCart, 
+  Search, 
+  Filter, 
   Eye, 
-  Search,
-  Phone,
-  User,
-  Calendar,
-  Package,
-  X
+  X, 
+  ShoppingCart,
+  TrendingUp,
+  DollarSign
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { productsApi, ordersApi } from '../lib/api';
+import { ordersApi } from '../lib/api';
 import type { Order } from '../types';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Orders: React.FC = () => {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // Calculer les statistiques
+  const totalOrders = orders.length;
+  const totalRevenue = orders.reduce((sum, order) => {
+    const orderTotal = parseFloat(order.total?.toString() || '0');
+    return sum + orderTotal;
+  }, 0);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   useEffect(() => {
-    if (searchTerm) {
-      const filtered = orders.filter(order =>
-        order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customer_phone.includes(searchTerm) ||
-        (order.customer_name && order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-      setFilteredOrders(filtered);
-    } else {
-      setFilteredOrders(orders);
-    }
+    const filtered = orders.filter(order =>
+      order.order_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer_phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredOrders(filtered);
   }, [searchTerm, orders]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [productsResponse] = await Promise.all([
-        productsApi.getAll()
-      ]);
+      const response = await ordersApi.getAll();
       
-      let ordersResponse;
-      try {
-        ordersResponse = await ordersApi.getAll();
-      } catch (error) {
-        console.error('Erreur lors de la récupération des commandes:', error);
-        console.log('L\'API orders n\'est pas disponible. Vérifiez que le serveur backend est démarré sur http://localhost:8000');
-        // Fallback avec des données vides si l'API n'est pas prête
-        ordersResponse = { data: [] };
-      }
-      
-      // Adapter les données de l'API
-      const adaptedProducts = productsResponse.data.map((product: any) => ({
-        ...product,
-        id: product.id.toString(),
-        stock_available: product.available_quantity || 0,
-        stock_reserved: product.reserved_quantity || 0,
-        stock_total: product.stock_quantity || 0
-      }));
-      // Products are now used inline for mapping
-
-      // Adapter les données de l'API pour les commandes
-      const adaptedOrders = ordersResponse.data.map((order: any) => ({
-        id: order.id.toString(),
+      // Adapter les données de l'API au format frontend
+      const adaptedOrders = response.data.map((order: any) => ({
+        id: order.id,
         order_number: order.order_number,
-        created_at: order.created_at,
         customer_phone: order.customer_phone,
         customer_name: order.customer_name,
-        total: parseFloat(order.total_amount) || 0, // S'assurer que c'est un nombre
-        status: order.status || 'pending', // Par défaut pending si pas défini
-        payment_status: order.payment_status || 'pending', // Par défaut pending si pas défini
-        items: order.items ? order.items.filter((item: any) => item.id).map((item: any) => ({
-          id: item.id.toString(),
-          product_id: item.product_id.toString(),
-          product: adaptedProducts.find((p: any) => p.id === item.product_id.toString()) || {
-            id: item.product_id.toString(),
-            name: item.product_name || 'Produit inconnu',
-            code: '',
-            price: item.unit_price,
-            stock_available: 0,
-            stock_reserved: 0,
-            stock_total: 0,
-            created_at: '',
-            updated_at: ''
-          },
-          quantity: item.quantity,
-          unit_price: parseFloat(item.unit_price) || 0,
-          total_price: parseFloat(item.total_price) || 0
-        })) : [],
-        updated_at: order.updated_at
+        total: order.total_amount,
+        payment_status: order.payment_status || 'pending',
+        created_at: order.created_at,
+        items: order.items || []
       }));
       
       setOrders(adaptedOrders);
-      setFilteredOrders(adaptedOrders);
-
     } catch (error) {
-      console.error('Error fetching orders data:', error);
+      console.error('Erreur lors de la récupération des commandes:', error);
     } finally {
       setLoading(false);
     }
   };
 
-
-
-  const getOrderStats = () => {
-    const total = orders.length;
-    const revenue = orders.reduce((sum, o) => {
-      const orderTotal = typeof o.total === 'number' ? o.total : parseFloat(o.total) || 0;
-      return sum + orderTotal;
-    }, 0);
-
-    return { total, revenue };
+  const formatCurrency = (amount: number) => {
+    return amount.toLocaleString('fr-FR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   };
 
-  const stats = getOrderStats();
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-300 rounded w-1/4 mb-4"></div>
-          <div className="h-4 bg-gray-300 rounded w-1/2 mb-6"></div>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 bg-gray-300 rounded"></div>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
@@ -143,200 +108,159 @@ const Orders: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-        <div>
-          <h1 className="text-3xl font-bold text-coca-black">Commandes</h1>
-          <p className="text-gray-600 mt-2">Gérez toutes les commandes de vos clients</p>
-        </div>
-        
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          {t('orders')}
+        </h1>
+        <p className="text-gray-600">
+          {t('orderManagement')}
+        </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <Card className="coca-shadow rounded-2xl">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Commandes</p>
-                  <p className="text-2xl font-bold text-coca-black">{stats.total}</p>
-                </div>
-                <ShoppingCart className="h-8 w-8 text-coca-red" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="rounded-2xl shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">
+                  {t('total')} {t('orders')}
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {totalOrders}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <ShoppingCart className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          <Card className="coca-shadow rounded-2xl">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Chiffre d'affaires</p>
-                                      <p className="text-xl font-bold text-coca-red">{stats.revenue.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD</p>
-                </div>
-                <div className="w-8 h-8 bg-coca-red rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">د.م</span>
-                </div>
+        <Card className="rounded-2xl shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">
+                  {t('revenue')}
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {formatCurrency(totalRevenue)} MAD
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              <div className="p-3 bg-green-100 rounded-xl">
+                <DollarSign className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Search */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.5 }}
-      >
-        <Card className="coca-shadow rounded-2xl">
-          <CardContent className="p-4">
-            <div className="relative">
+      {/* Search and Filters */}
+      <Card className="rounded-2xl shadow-lg">
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Rechercher par numéro de commande, téléphone ou nom client..."
+                placeholder={t('searchOrders')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 rounded-xl"
               />
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+            <Button variant="outline" className="rounded-xl">
+              <Filter className="h-4 w-4 mr-2" />
+              {t('filters')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Orders Table */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.6 }}
-      >
-        <Card className="coca-shadow rounded-2xl">
-          <CardHeader>
-            <CardTitle>Liste des Commandes</CardTitle>
-            <CardDescription>
-              {filteredOrders.length} commande{filteredOrders.length > 1 ? 's' : ''} trouvée{filteredOrders.length > 1 ? 's' : ''}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table className="rounded-xl overflow-hidden">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Numéro</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Articles</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Statut Paiement</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.map((order, index) => {
-                  return (
-                    <motion.tr
-                      key={order.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => {
+      <Card className="rounded-2xl shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">
+            {t('ordersList')}
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            {filteredOrders.length} {t('orders').toLowerCase()}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('orderNumber')}</TableHead>
+                <TableHead>{t('customer')}</TableHead>
+                <TableHead>{t('createdAt')}</TableHead>
+                <TableHead>{t('total')}</TableHead>
+                <TableHead>{t('paymentStatus')}</TableHead>
+                <TableHead>{t('actions')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredOrders.map((order) => (
+                <motion.tr
+                  key={order.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  <TableCell className="font-medium">
+                    {order.order_number}
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">{order.customer_name || 'N/A'}</p>
+                      <p className="text-sm text-gray-500">{order.customer_phone}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {formatDate(order.created_at)}
+                  </TableCell>
+                  <TableCell className="font-semibold">
+                    {formatCurrency(parseFloat(order.total?.toString() || '0'))} MAD
+                  </TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      order.payment_status === 'paid' 
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-orange-100 text-orange-800'
+                    }`}>
+                      {order.payment_status === 'paid' ? t('paid') : t('pending')}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setSelectedOrder(order);
                         setShowOrderModal(true);
                       }}
+                      className="text-coca-red hover:text-coca-red/80 rounded-xl"
                     >
-                      <TableCell className="font-medium text-coca-black">
-                        {order.order_number}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <User className="h-4 w-4 text-gray-400" />
-                          <div>
-                            <p className="font-medium">{order.customer_name || 'Client'}</p>
-                            <p className="text-sm text-gray-500 flex items-center">
-                              <Phone className="h-3 w-3 mr-1" />
-                              {order.customer_phone}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          {new Date(order.created_at).toLocaleDateString('fr-FR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center text-sm">
-                          <Package className="h-4 w-4 mr-2 text-gray-400" />
-                          {order.items.length} article{order.items.length > 1 ? 's' : ''}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-bold text-coca-red text-lg">
-                          {order.total.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD
-                        </span>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          order.payment_status === 'paid' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-orange-100 text-orange-800'
-                        }`}>
-                          {order.payment_status === 'paid' ? 'Payé' : 'Pending'}
-                        </span>
-                      </TableCell>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </motion.tr>
+              ))}
+            </TableBody>
+          </Table>
 
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedOrder(order);
-                            setShowOrderModal(true);
-                          }}
-                          className="text-coca-red hover:text-coca-red/80 rounded-xl"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </motion.tr>
-                  );
-                })}
-              </TableBody>
-            </Table>
-
-            {filteredOrders.length === 0 && (
-              <div className="text-center py-8">
-                <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">Aucune commande trouvée</p>
-                <p className="text-sm text-gray-400">
-                  {searchTerm ? 'Essayez de modifier votre recherche' : 'Vérifiez que le serveur backend est démarré sur http://localhost:8000'}
-                </p>
-                <p className="text-xs text-gray-400 mt-2">
-                  L'API Swagger fonctionne - les commandes s'afficheront une fois la connexion établie
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
+          {filteredOrders.length === 0 && (
+            <div className="text-center py-8">
+              <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Aucune commande trouvée</p>
+              <p className="text-sm text-gray-400">
+                {searchTerm ? 'Essayez de modifier votre recherche' : 'Vérifiez que le serveur backend est démarré sur http://localhost:8000'}
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Order Detail Modal */}
       {showOrderModal && selectedOrder && (
@@ -348,8 +272,8 @@ const Orders: React.FC = () => {
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-coca-black">
-                  Détail de la commande
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {t('orderDetails')}
                 </h3>
                 <Button
                   variant="ghost"
@@ -363,72 +287,77 @@ const Orders: React.FC = () => {
               {/* Order Info */}
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
-                  <h4 className="font-semibold text-coca-black mb-2">Informations de la commande</h4>
-                  <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Numéro:</span> {selectedOrder.order_number}</p>
-                    <p><span className="font-medium">Date:</span> {new Date(selectedOrder.created_at).toLocaleString('fr-FR')}</p>
-                    <p><span className="font-medium">Statut Paiement:</span> 
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    {t('orderDetails')}
+                  </h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">{t('orderNumber')}:</span> {selectedOrder.order_number}</p>
+                    <p><span className="font-medium">{t('createdAt')}:</span> {formatDate(selectedOrder.created_at)}</p>
+                    <p><span className="font-medium">{t('paymentStatus')}:</span> 
                       <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
                         selectedOrder.payment_status === 'paid' 
-                          ? 'bg-green-100 text-green-800' 
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-orange-100 text-orange-800'
                       }`}>
-                        {selectedOrder.payment_status === 'paid' ? 'Payé' : 'Pending'}
+                        {selectedOrder.payment_status === 'paid' ? t('paid') : t('pending')}
                       </span>
                     </p>
-
                   </div>
                 </div>
-                
                 <div>
-                  <h4 className="font-semibold text-coca-black mb-2">Informations client</h4>
-                  <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Nom:</span> {selectedOrder.customer_name || 'Non spécifié'}</p>
-                    <p><span className="font-medium">Téléphone:</span> {selectedOrder.customer_phone}</p>
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    {t('customerInfo')}
+                  </h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">{t('customer')}:</span> {selectedOrder.customer_name || 'N/A'}</p>
+                    <p><span className="font-medium">{t('phone')}:</span> {selectedOrder.customer_phone}</p>
                   </div>
                 </div>
               </div>
 
               {/* Order Items */}
-              <div className="mb-6">
-                <h4 className="font-semibold text-coca-black mb-4">Articles commandés</h4>
-                <div className="space-y-3">
-                  {selectedOrder.items && selectedOrder.items.length > 0 ? selectedOrder.items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-coca-red rounded-full flex items-center justify-center">
-                          <Package className="h-5 w-5 text-white" />
-                        </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-4">
+                  {t('orderItems')}
+                </h4>
+                {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                  <div className="space-y-3">
+                    {selectedOrder.items.map((item: any, index: number) => (
+                      <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
                         <div>
-                          <p className="font-medium">{item.product.name}</p>
-                          <p className="text-sm text-gray-600">{item.product.code}</p>
+                          <p className="font-medium">{item.product_name}</p>
+                          <p className="text-sm text-gray-600">Quantité: {item.quantity}</p>
                         </div>
+                        <p className="font-semibold">
+                          {formatCurrency(parseFloat(item.total_price?.toString() || '0'))} MAD
+                        </p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">{item.quantity} × {item.unit_price.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD</p>
-                        <p className="text-lg font-bold text-coca-red">{item.total_price.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD</p>
-                      </div>
-                    </div>
-                  )) : (
-                    <p className="text-gray-500 text-center py-4">Aucun article dans cette commande</p>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">
+                    {t('noProductsFound')}
+                  </p>
+                )}
               </div>
 
               {/* Total */}
-              <div className="border-t pt-4 mb-6">
+              <div className="mt-6 pt-4 border-t">
                 <div className="flex justify-between items-center">
-                  <span className="text-xl font-semibold text-coca-black">Total de la commande</span>
-                  <span className="text-2xl font-bold text-coca-red">{(selectedOrder.total || 0).toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD</span>
+                  <span className="text-lg font-semibold">{t('totalPrice')}:</span>
+                  <span className="text-2xl font-bold text-gray-900">
+                    {formatCurrency(parseFloat(selectedOrder.total?.toString() || '0'))} MAD
+                  </span>
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex justify-end space-x-3">
-                <Button variant="outline" onClick={() => setShowOrderModal(false)} className="rounded-xl">
-                  Fermer
+              <div className="mt-6 flex justify-end">
+                <Button
+                  onClick={() => setShowOrderModal(false)}
+                  className="rounded-xl"
+                >
+                  {t('close')}
                 </Button>
-
               </div>
             </div>
           </motion.div>
@@ -439,3 +368,4 @@ const Orders: React.FC = () => {
 };
 
 export default Orders;
+
