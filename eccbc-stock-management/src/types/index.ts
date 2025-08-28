@@ -29,6 +29,7 @@ export interface Order {
   customer_phone: string;
   customer_name?: string;
   status: 'pending' | 'confirmed' | 'delivered' | 'cancelled';
+  payment_status: 'paid' | 'pending';
   total: number;
   items: OrderItem[];
   created_at: string;

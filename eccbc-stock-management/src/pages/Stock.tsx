@@ -143,11 +143,11 @@ const Stock: React.FC = () => {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-300 rounded w-1/4 mb-4"></div>
-          <div className="h-4 bg-gray-300 rounded w-1/2 mb-6"></div>
+          <div className="h-8 bg-gray-300 rounded-xl w-1/4 mb-4"></div>
+          <div className="h-4 bg-gray-300 rounded-xl w-1/2 mb-6"></div>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-300 rounded"></div>
+              <div key={i} className="h-32 bg-gray-300 rounded-xl"></div>
             ))}
           </div>
         </div>
@@ -172,7 +172,7 @@ const Stock: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Card className="coca-shadow">
+          <Card className="coca-shadow rounded-2xl">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -192,7 +192,7 @@ const Stock: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <Card className="coca-shadow">
+          <Card className="coca-shadow rounded-2xl">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -214,7 +214,7 @@ const Stock: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <Card className="coca-shadow">
+          <Card className="coca-shadow rounded-2xl">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -236,7 +236,7 @@ const Stock: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
         >
-          <Card className="coca-shadow">
+          <Card className="coca-shadow rounded-2xl">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -258,7 +258,7 @@ const Stock: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.4 }}
       >
-        <Card className="coca-shadow">
+        <Card className="coca-shadow rounded-2xl">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Warehouse className="h-5 w-5 text-coca-red" />
@@ -269,7 +269,7 @@ const Stock: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
+            <Table className="rounded-xl overflow-hidden">
               <TableHeader>
                 <TableRow>
                   <TableHead>Produit</TableHead>
@@ -347,7 +347,7 @@ const Stock: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.5 }}
       >
-        <Card className="coca-shadow">
+        <Card className="coca-shadow rounded-2xl">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <History className="h-5 w-5 text-coca-red" />
@@ -369,7 +369,7 @@ const Stock: React.FC = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex items-center space-x-4">
                       <div className={`p-2 rounded-full bg-white ${movementInfo.color}`}>

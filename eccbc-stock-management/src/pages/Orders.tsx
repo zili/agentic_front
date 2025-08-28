@@ -2,30 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ShoppingCart, 
-  Plus, 
   Eye, 
   Search,
   Phone,
   User,
   Calendar,
-  Package
+  Package,
+  X
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { productsApi, ordersApi } from '../lib/api';
-import type { Order, Product } from '../types';
+import type { Order } from '../types';
 
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
-  const [showNewOrderModal, setShowNewOrderModal] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -69,19 +67,22 @@ const Orders: React.FC = () => {
         stock_reserved: product.reserved_quantity || 0,
         stock_total: product.stock_quantity || 0
       }));
-      setProducts(adaptedProducts);
+      // Products are now used inline for mapping
 
       // Adapter les données de l'API pour les commandes
       const adaptedOrders = ordersResponse.data.map((order: any) => ({
         id: order.id.toString(),
         order_number: order.order_number,
+        created_at: order.created_at,
         customer_phone: order.customer_phone,
         customer_name: order.customer_name,
         total: parseFloat(order.total_amount) || 0, // S'assurer que c'est un nombre
+        status: order.status || 'pending', // Par défaut pending si pas défini
+        payment_status: order.payment_status || 'pending', // Par défaut pending si pas défini
         items: order.items ? order.items.filter((item: any) => item.id).map((item: any) => ({
           id: item.id.toString(),
           product_id: item.product_id.toString(),
-          product: adaptedProducts.find(p => p.id === item.product_id.toString()) || {
+          product: adaptedProducts.find((p: any) => p.id === item.product_id.toString()) || {
             id: item.product_id.toString(),
             name: item.product_name || 'Produit inconnu',
             code: '',
@@ -96,7 +97,6 @@ const Orders: React.FC = () => {
           unit_price: parseFloat(item.unit_price) || 0,
           total_price: parseFloat(item.total_price) || 0
         })) : [],
-        created_at: order.created_at,
         updated_at: order.updated_at
       }));
       
@@ -148,13 +148,7 @@ const Orders: React.FC = () => {
           <h1 className="text-3xl font-bold text-coca-black">Commandes</h1>
           <p className="text-gray-600 mt-2">Gérez toutes les commandes de vos clients</p>
         </div>
-        <Button 
-          onClick={() => setShowNewOrderModal(true)}
-          className="bg-coca-red hover:bg-coca-red/90 text-white"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvelle Commande
-        </Button>
+        
       </div>
 
       {/* Stats Cards */}
@@ -164,7 +158,7 @@ const Orders: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Card className="coca-shadow">
+          <Card className="coca-shadow rounded-2xl">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -182,7 +176,7 @@ const Orders: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <Card className="coca-shadow">
+          <Card className="coca-shadow rounded-2xl">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -204,7 +198,7 @@ const Orders: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.5 }}
       >
-        <Card className="coca-shadow">
+        <Card className="coca-shadow rounded-2xl">
           <CardContent className="p-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -212,7 +206,7 @@ const Orders: React.FC = () => {
                 placeholder="Rechercher par numéro de commande, téléphone ou nom client..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 rounded-xl"
               />
             </div>
           </CardContent>
@@ -225,7 +219,7 @@ const Orders: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.6 }}
       >
-        <Card className="coca-shadow">
+        <Card className="coca-shadow rounded-2xl">
           <CardHeader>
             <CardTitle>Liste des Commandes</CardTitle>
             <CardDescription>
@@ -233,7 +227,7 @@ const Orders: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
+            <Table className="rounded-xl overflow-hidden">
               <TableHeader>
                 <TableRow>
                   <TableHead>Numéro</TableHead>
@@ -241,7 +235,7 @@ const Orders: React.FC = () => {
                   <TableHead>Date</TableHead>
                   <TableHead>Articles</TableHead>
                   <TableHead>Total</TableHead>
-    
+                  <TableHead>Statut Paiement</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -297,6 +291,16 @@ const Orders: React.FC = () => {
                           {order.total.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD
                         </span>
                       </TableCell>
+                      
+                      <TableCell>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          order.payment_status === 'paid' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-orange-100 text-orange-800'
+                        }`}>
+                          {order.payment_status === 'paid' ? 'Payé' : 'Pending'}
+                        </span>
+                      </TableCell>
 
                       <TableCell>
                         <Button 
@@ -307,7 +311,7 @@ const Orders: React.FC = () => {
                             setSelectedOrder(order);
                             setShowOrderModal(true);
                           }}
-                          className="text-coca-red hover:text-coca-red/80"
+                          className="text-coca-red hover:text-coca-red/80 rounded-xl"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -340,7 +344,7 @@ const Orders: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -352,7 +356,7 @@ const Orders: React.FC = () => {
                   onClick={() => setShowOrderModal(false)}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  <XCircle className="h-6 w-6" />
+                  <X className="h-6 w-6" />
                 </Button>
               </div>
 
@@ -363,6 +367,15 @@ const Orders: React.FC = () => {
                   <div className="space-y-2 text-sm">
                     <p><span className="font-medium">Numéro:</span> {selectedOrder.order_number}</p>
                     <p><span className="font-medium">Date:</span> {new Date(selectedOrder.created_at).toLocaleString('fr-FR')}</p>
+                    <p><span className="font-medium">Statut Paiement:</span> 
+                      <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                        selectedOrder.payment_status === 'paid' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-orange-100 text-orange-800'
+                      }`}>
+                        {selectedOrder.payment_status === 'paid' ? 'Payé' : 'Pending'}
+                      </span>
+                    </p>
 
                   </div>
                 </div>
@@ -380,8 +393,8 @@ const Orders: React.FC = () => {
               <div className="mb-6">
                 <h4 className="font-semibold text-coca-black mb-4">Articles commandés</h4>
                 <div className="space-y-3">
-                  {selectedOrder.items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  {selectedOrder.items && selectedOrder.items.length > 0 ? selectedOrder.items.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-coca-red rounded-full flex items-center justify-center">
                           <Package className="h-5 w-5 text-white" />
@@ -396,7 +409,9 @@ const Orders: React.FC = () => {
                         <p className="text-lg font-bold text-coca-red">{item.total_price.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD</p>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-gray-500 text-center py-4">Aucun article dans cette commande</p>
+                  )}
                 </div>
               </div>
 
@@ -404,13 +419,13 @@ const Orders: React.FC = () => {
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between items-center">
                   <span className="text-xl font-semibold text-coca-black">Total de la commande</span>
-                  <span className="text-2xl font-bold text-coca-red">{selectedOrder.total.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD</span>
+                  <span className="text-2xl font-bold text-coca-red">{(selectedOrder.total || 0).toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD</span>
                 </div>
               </div>
 
               {/* Actions */}
               <div className="flex justify-end space-x-3">
-                <Button variant="outline" onClick={() => setShowOrderModal(false)}>
+                <Button variant="outline" onClick={() => setShowOrderModal(false)} className="rounded-xl">
                   Fermer
                 </Button>
 

@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  LayoutDashboard, 
   Package, 
   Warehouse, 
   ShoppingCart, 
@@ -9,7 +8,8 @@ import {
   BarChart3,
   User,
   Bell,
-  Search
+  Search,
+  Clock
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -20,6 +20,10 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [seenOrderIds, setSeenOrderIds] = useState<Set<string>>(new Set());
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -27,6 +31,51 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
     { id: 'stock', label: 'Stock', icon: Warehouse },
     { id: 'orders', label: 'Commandes', icon: ShoppingCart },
   ];
+
+  // Fonction pour récupérer les dernières commandes
+  const fetchRecentOrders = useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/orders/all');
+      const data = await response.json();
+      // Prendre les 3 dernières commandes et les trier par date
+      const sortedOrders = data.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const latestOrders = sortedOrders.slice(0, 3);
+      
+      // Compter les nouvelles commandes (non vues)
+      const newOrders = latestOrders.filter((order: any) => !seenOrderIds.has(order.id.toString()));
+      
+      // Remplacer le compteur par le nombre exact de nouvelles commandes (ne pas accumuler)
+      setUnreadCount(newOrders.length);
+      
+      setRecentOrders(latestOrders);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des commandes:', error);
+    }
+  }, [seenOrderIds]);
+
+  useEffect(() => {
+    // Chargement initial
+    fetchRecentOrders();
+    
+    // Actualiser les notifications toutes les 30 secondes
+    const interval = setInterval(fetchRecentOrders, 30000);
+    return () => clearInterval(interval);
+  }, [fetchRecentOrders]); // Dépendance sur fetchRecentOrders
+
+  // Fermer le dropdown quand on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showNotifications && !target.closest('.notification-dropdown')) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -92,32 +141,107 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
               
               {/* User & Notifications */}
               <div className="flex items-center space-x-4">
-                <button 
-                className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-700 ease-out shadow-lg hover:shadow-xl group" 
-                style={{backgroundColor: '#fecaca'}}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#dc2626';
-                  const icon = e.currentTarget.querySelector('svg');
-                  if (icon) icon.style.color = 'white';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#fecaca';
-                  const icon = e.currentTarget.querySelector('svg');
-                  if (icon) icon.style.color = '#dc2626';
-                }}
-                onMouseDown={(e) => {
-                  e.currentTarget.style.backgroundColor = '#b91c1c';
-                  const icon = e.currentTarget.querySelector('svg');
-                  if (icon) icon.style.color = 'white';
-                }}
-                onMouseUp={(e) => {
-                  e.currentTarget.style.backgroundColor = '#dc2626';
-                  const icon = e.currentTarget.querySelector('svg');
-                  if (icon) icon.style.color = 'white';
-                }}
-              >
-                <Bell size={24} className="text-red-600 transition-colors duration-700" />
-              </button>
+                <div className="relative notification-dropdown">
+                  <button 
+                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-700 ease-out shadow-lg hover:shadow-xl group relative" 
+                    style={{backgroundColor: '#fecaca'}}
+                    onClick={() => {
+                      setShowNotifications(!showNotifications);
+                      if (!showNotifications) {
+                        // Marquer toutes les commandes actuelles comme vues
+                        const currentOrderIds = recentOrders.map((order: any) => order.id.toString());
+                        setSeenOrderIds(prev => new Set([...prev, ...currentOrderIds]));
+                        setUnreadCount(0); // Remettre le badge à 0
+                      }
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#dc2626';
+                      const icon = e.currentTarget.querySelector('svg');
+                      if (icon) icon.style.color = 'white';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#fecaca';
+                      const icon = e.currentTarget.querySelector('svg');
+                      if (icon) icon.style.color = '#dc2626';
+                    }}
+                    onMouseDown={(e) => {
+                      e.currentTarget.style.backgroundColor = '#b91c1c';
+                      const icon = e.currentTarget.querySelector('svg');
+                      if (icon) icon.style.color = 'white';
+                    }}
+                    onMouseUp={(e) => {
+                      e.currentTarget.style.backgroundColor = '#dc2626';
+                      const icon = e.currentTarget.querySelector('svg');
+                      if (icon) icon.style.color = 'white';
+                    }}
+                  >
+                    <Bell size={24} className="text-red-600 transition-colors duration-700" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Dropdown des notifications */}
+                  {showNotifications && (
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-200 z-50">
+                      <div className="p-4 border-b border-gray-100">
+                        <h3 className="font-semibold text-gray-800">Dernières commandes</h3>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto select-none" style={{userSelect: 'none'}}>
+                        {recentOrders.length > 0 ? (
+                          recentOrders.map((order: any) => (
+                            <div key={order.id} className="p-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 select-none" style={{userSelect: 'none'}}>
+                              <div className="flex items-start space-x-3">
+                                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                  <ShoppingCart size={16} className="text-red-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {order.order_number}
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    {order.customer_name || 'Client non spécifié'}
+                                  </p>
+                                  <div className="flex items-center space-x-2 mt-1">
+                                    <Clock size={12} className="text-gray-400" />
+                                    <p className="text-xs text-gray-500">
+                                      {new Date(order.created_at).toLocaleString('fr-FR')}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm font-medium text-red-600">
+                                    {parseFloat(order.total_amount || 0).toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-4 text-center text-gray-500">
+                            <Bell size={24} className="mx-auto mb-2 text-gray-300" />
+                            <p>Aucune commande récente</p>
+                          </div>
+                        )}
+                      </div>
+                      {recentOrders.length > 0 && (
+                        <div className="p-4 border-t border-gray-100">
+                          <button 
+                            onClick={() => {
+                              setShowNotifications(false);
+                              onPageChange('orders');
+                            }}
+                            className="w-full text-center text-sm text-red-600 hover:text-red-700 font-medium"
+                          >
+                            Voir toutes les commandes
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               <button 
                 className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-700 ease-out shadow-lg hover:shadow-xl group" 
                 style={{backgroundColor: '#fecaca'}}
@@ -152,8 +276,8 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className={`shadow-lg ${isSidebarOpen ? 'w-48' : 'w-0'} transition-all duration-300 overflow-hidden`} style={{backgroundColor: '#b91c1c'}}>
-          <nav className="space-y-2">
+        <aside className={`shadow-lg h-screen sticky top-0 ${isSidebarOpen ? 'w-48' : 'w-0'} transition-all duration-300 overflow-hidden`} style={{backgroundColor: '#b91c1c'}}>
+          <nav className="space-y-2 pt-6">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentPage === item.id;
