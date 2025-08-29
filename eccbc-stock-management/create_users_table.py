@@ -8,10 +8,10 @@ load_dotenv()
 
 # Configuration de la base de données
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
+    'host': os.getenv('DB_HOST', 'n8n.xandys.xyz'),
     'database': os.getenv('DB_NAME', 'coca_db'),
-    'user': os.getenv('DB_USER', 'postgres'),
-    'password': os.getenv('DB_PASSWORD', '1234'),
+    'user': os.getenv('DB_USER', 'coca_user'),
+    'password': os.getenv('DB_PASSWORD', 'zili'),
     'port': os.getenv('DB_PORT', '5432')
 }
 

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../hooks/useTranslation';
+import { ordersApi } from '../lib/api';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -34,6 +35,8 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const menuItems: MenuItem[] = [
     { id: 'dashboard', label: t('dashboard'), icon: BarChart3 },
@@ -64,6 +67,22 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
     changeLanguage(langCode);
     setShowLanguageMenu(false);
   };
+
+  // Charger les commandes récentes pour les notifications
+  useEffect(() => {
+    const fetchRecentOrders = async () => {
+      try {
+        const response = await ordersApi.getAll();
+        const orders = response.data.slice(0, 3); // Prendre les 3 dernières commandes
+        setRecentOrders(orders);
+        setNotificationCount(orders.length);
+      } catch (error) {
+        console.error('Erreur lors du chargement des notifications:', error);
+      }
+    };
+
+    fetchRecentOrders();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -232,9 +251,11 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                   className="relative p-2 rounded-xl text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
                 >
                   <Bell size={24} />
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    3
-                  </span>
+                  {notificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {notificationCount}
+                    </span>
+                  )}
                 </button>
 
                 {showNotifications && (
@@ -244,30 +265,29 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                         Notifications
                       </h3>
                       <div className="space-y-3">
-                        <div className="p-3 bg-blue-50 rounded-xl">
-                          <p className="text-sm text-blue-800">
-                            Nouvelle commande #1234 reçue
-                          </p>
-                          <p className="text-xs text-blue-600 mt-1">
-                            Il y a 5 minutes
-                          </p>
-                        </div>
-                        <div className="p-3 bg-yellow-50 rounded-xl">
-                          <p className="text-sm text-yellow-800">
-                            Stock faible pour Coca-Cola
-                          </p>
-                          <p className="text-xs text-yellow-600 mt-1">
-                            Il y a 1 heure
-                          </p>
-                        </div>
-                        <div className="p-3 bg-green-50 rounded-xl">
-                          <p className="text-sm text-green-800">
-                            Livraison #5678 complétée
-                          </p>
-                          <p className="text-xs text-green-600 mt-1">
-                            Il y a 2 heures
-                          </p>
-                        </div>
+                        {recentOrders.length > 0 ? (
+                          recentOrders.map((order: any) => (
+                            <div key={order.id} className="p-3 bg-blue-50 rounded-xl">
+                              <p className="text-sm text-blue-800">
+                                Commande #{order.order_number} - {order.customer_name || order.customer_phone}
+                              </p>
+                              <p className="text-xs text-blue-600 mt-1">
+                                {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-3 bg-gray-50 rounded-xl">
+                            <p className="text-sm text-gray-600">
+                              Aucune commande récente
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

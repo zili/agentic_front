@@ -25,10 +25,10 @@ app.add_middleware(
 
 # Configuration de la base de données
 DATABASE_CONFIG = {
-    "host": "localhost",
+    "host": "n8n.xandys.xyz",
     "database": "coca_db",
-    "user": "postgres",  # ou ton user dans pgAdmin
-    "password": "1234",      # vide si pas de mot de passe
+    "user": "coca_user",
+    "password": "zili",
     "port": 5432
 }
 
