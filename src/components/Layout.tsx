@@ -4,8 +4,6 @@ import {
   Bell, 
   User, 
   LogOut,
-  ChevronDown,
-  Globe,
   BarChart3,
   Package,
   Box,

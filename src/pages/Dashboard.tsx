@@ -46,23 +46,25 @@ const Dashboard: React.FC = () => {
         }));
 
         // Essayer de récupérer les vraies commandes, sinon utiliser des données vides
-        let ordersData = [];
+        let ordersData : any[] = [];
         try {
           ordersData = await apiService.getAllOrders(3); // Prendre les 3 dernières commandes
         } catch (error) {
           console.error('Impossible de récupérer les commandes:', error);
           // Pas de commandes pour le moment
         }
-        
-        const recentOrders = ordersData.map((order: any) => ({
-          id: order.id?.toString() || Math.random().toString(),
-          order_number: order.order_number || 'N/A',
-          customer_phone: order.customer_phone || 'N/A',
-          total: parseFloat(order.total_amount) || 0, // S'assurer que c'est un nombre
-          items: [],
-          created_at: order.created_at || new Date().toISOString(),
-          updated_at: order.updated_at || new Date().toISOString()
-        }));
+
+          const recentOrders = ordersData.map((order: any) => ({
+              id: order.id?.toString() || Math.random().toString(),
+              order_number: order.order_number || 'N/A',
+              customer_phone: order.customer_phone || 'N/A',
+              total: parseFloat(order.total_amount) || 0,
+              items: [],
+              created_at: order.created_at || new Date().toISOString(),
+              updated_at: order.updated_at || new Date().toISOString(),
+              status: order.status || 'pending',           // AJOUTÉ
+              payment_status: order.payment_status || 'unpaid'  // AJOUTÉ
+          }));
 
         // Calculer les statistiques depuis les vraies données
         const totalProducts = adaptedProducts.length;
