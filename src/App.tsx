@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
-import Products from './pages/Products';
-import Stock from './pages/Stock';
-import Orders from './pages/Orders';
-import Login from './pages/Login';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Layout from './components/Layout.tsx';
+import Dashboard from './pages/Dashboard.tsx';
+import Products from './pages/Products.tsx';
+import Stock from './pages/Stock.tsx';
+import Orders from './pages/Orders.tsx';
+import Login from './pages/Login.tsx';
+import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
 import './index.css';
 
 function AppContent() {

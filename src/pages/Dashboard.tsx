@@ -8,9 +8,9 @@ import {
   Activity,
   DollarSign
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.tsx';
 import type { Product, Order } from '../types';
-import { apiService } from '../services/api';
+import { apiService } from '../services/api.ts';
 
 
 

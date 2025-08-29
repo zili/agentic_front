@@ -10,11 +10,11 @@ import {
   TrendingUp,
   DollarSign
 } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { apiService } from '../services/api';
+import { Button } from '../components/ui/button.tsx';
+import { Input } from '../components/ui/input.tsx';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.tsx';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table.tsx';
+import { apiService } from '../services/api.ts';
 import type { Order } from '../types';
 
 

@@ -9,11 +9,11 @@ import {
   Filter,
   MoreVertical
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { apiService } from '../services/api';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.tsx';
+import { Button } from '../components/ui/button.tsx';
+import { Input } from '../components/ui/input.tsx';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table.tsx';
+import { apiService } from '../services/api.ts';
 import type { Product } from '../types';
 
 const Products: React.FC = () => {

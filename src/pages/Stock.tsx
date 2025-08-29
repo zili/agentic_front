@@ -9,9 +9,9 @@ import {
   TrendingDown,
   RotateCcw
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { apiService } from '../services/api';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.tsx';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table.tsx';
+import { apiService } from '../services/api.ts';
 
 import type { Product, StockMovement } from '../types';
 

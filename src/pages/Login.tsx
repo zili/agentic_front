@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Card, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button.tsx';
+import { Input } from '../components/ui/input.tsx';
+import { Card, CardContent } from '../components/ui/card.tsx';
 
-import { useAuth } from '../contexts/AuthContext';
-import type { UserLogin } from '../services/api';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import type { UserLogin } from '../services/api.ts';
 
 const Login: React.FC = () => {
 
