@@ -13,7 +13,7 @@ import {
   Search
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useTranslation } from '../hooks/useTranslation';
+
 import { apiService } from '../services/api';
 
 interface LayoutProps {
@@ -30,43 +30,35 @@ interface MenuItem {
 
 const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
   const { logout } = useAuth();
-  const { t, language, changeLanguage } = useTranslation();
+
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [notificationCount, setNotificationCount] = useState(0);
 
   const menuItems: MenuItem[] = [
-    { id: 'dashboard', label: t('dashboard'), icon: BarChart3 },
-    { id: 'orders', label: t('orders'), icon: Package },
-    { id: 'products', label: t('products'), icon: Box },
-    { id: 'stock', label: t('stock'), icon: Warehouse },
+    { id: 'dashboard', label: 'Tableau de bord', icon: BarChart3 },
+    { id: 'orders', label: 'Commandes', icon: Package },
+    { id: 'products', label: 'Produits', icon: Box },
+    { id: 'stock', label: 'Stock', icon: Warehouse },
   ];
 
-  const languages = [
-    { code: 'FR', name: 'Français', flag: '🇫🇷' },
-    { code: 'EN', name: 'English', flag: '🇺🇸' },
-    { code: 'AR', name: 'العربية', flag: '🇸🇦' },
-  ];
+
 
   // Fermer les menus quand on clique ailleurs
   useEffect(() => {
     const handleClickOutside = () => {
       setShowNotifications(false);
       setShowUserMenu(false);
-      setShowLanguageMenu(false);
     };
 
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const handleLanguageChange = (langCode: string) => {
-    changeLanguage(langCode);
-    setShowLanguageMenu(false);
-  };
+
 
   // Charger les commandes récentes pour les notifications
   useEffect(() => {
@@ -199,43 +191,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                 />
               </div>
               
-              {/* Sélecteur de langue */}
-              <div className="relative">
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowLanguageMenu(!showLanguageMenu);
-                  }}
-                  className="flex items-center space-x-2 p-2 rounded-xl text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  <Globe size={20} />
-                  <span className="text-sm font-medium">
-                    {languages.find(lang => lang.code === language)?.flag}
-                  </span>
-                  <ChevronDown size={16} />
-                </button>
-
-                {showLanguageMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-200 z-50">
-                    <div className="p-2">
-                      {languages.map((lang) => (
-                        <button
-                          key={lang.code}
-                          onClick={() => handleLanguageChange(lang.code)}
-                          className={`w-full flex items-center space-x-3 px-3 py-2 text-sm rounded-xl transition-colors ${
-                            language === lang.code
-                              ? 'bg-red-50 text-red-600'
-                              : 'text-gray-700 hover:bg-gray-50'
-                          }`}
-                        >
-                          <span className="text-lg">{lang.flag}</span>
-                          <span>{lang.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              
 
               {/* Séparateur vertical */}
               <div className="w-px h-6 bg-gray-300"></div>
@@ -316,7 +272,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                         className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors"
                       >
                         <LogOut size={16} />
-                        <span>{t('logout')}</span>
+                        <span>Déconnexion</span>
                       </button>
                     </div>
                   </div>

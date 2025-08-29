@@ -4,12 +4,12 @@ import { Eye, EyeOff, Lock, User, AlertCircle, CheckCircle } from 'lucide-react'
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent } from '../components/ui/card';
-import { useTranslation } from '../hooks/useTranslation';
+
 import { useAuth } from '../contexts/AuthContext';
 import type { UserLogin } from '../services/api';
 
 const Login: React.FC = () => {
-  const { t } = useTranslation();
+
   const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

@@ -11,7 +11,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import type { Product, Order } from '../types';
 import { apiService } from '../services/api';
-import { useTranslation } from '../hooks/useTranslation';
+
 
 
 interface DashboardStats {
@@ -23,7 +23,7 @@ interface DashboardStats {
 }
 
 const Dashboard: React.FC = () => {
-  const { t } = useTranslation();
+
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
@@ -98,28 +98,28 @@ const Dashboard: React.FC = () => {
 
   const statCards = [
     {
-      title: t('totalStock'),
+      title: 'Stock Total',
       value: stats?.total_stock || 0,
       icon: Warehouse,
       color: 'bg-red-600',
       change: '+12%'
     },
     {
-      title: t('orders7d'),
+      title: 'Commandes 7j',
       value: stats?.recent_orders || 0,
       icon: ShoppingCart,
       color: 'bg-red-600',
       change: '+8%'
     },
     {
-      title: t('criticalStock'),
+      title: 'Stock Critique',
       value: stats?.low_stock_products || 0,
       icon: AlertTriangle,
       color: 'bg-red-600',
       change: '-2'
     },
     {
-      title: t('revenue'),
+      title: 'Revenus',
       value: stats?.total_revenue || 0,
       icon: DollarSign,
       color: 'bg-red-700',
@@ -152,12 +152,12 @@ const Dashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{t('dashboard')}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
           <p className="text-gray-600 mt-2">Vue d'ensemble de votre activité ECCBC</p>
         </div>
         <div className="flex items-center space-x-2 text-sm text-gray-500">
           <Activity size={16} />
-          <span>{t('updatedMinutesAgo')}</span>
+          <span>Mis à jour il y a 2 min</span>
         </div>
       </div>
 
@@ -200,7 +200,7 @@ const Dashboard: React.FC = () => {
                     index === 2 || index === 3 ? 'text-white opacity-90' : 'text-green-600'
                   }`}>
                     <TrendingUp size={12} className="mr-1" />
-                    {card.change} {t('vsLastMonth')}
+                    {card.change} vs mois dernier
                   </p>
                 </CardContent>
               </Card>

@@ -16,10 +16,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { apiService } from '../services/api';
 import type { Order } from '../types';
-import { useTranslation } from '../hooks/useTranslation';
+
 
 const Orders: React.FC = () => {
-  const { t } = useTranslation();
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -110,12 +110,12 @@ const Orders: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {t('orders')}
-        </h1>
-        <p className="text-gray-600">
-          {t('orderManagement')}
-        </p>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Commandes
+          </h1>
+          <p className="text-gray-600">
+            Gestion des commandes
+          </p>
       </div>
 
       {/* Stats Cards */}
@@ -125,7 +125,7 @@ const Orders: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  {t('total')} {t('orders')}
+                  Total Commandes
                 </p>
                 <p className="text-2xl font-bold text-gray-800">
                   {totalOrders}
@@ -143,7 +143,7 @@ const Orders: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  {t('revenue')}
+                  Revenus
                 </p>
                 <p className="text-2xl font-bold text-gray-800">
                   {formatCurrency(totalRevenue)} MAD
@@ -164,7 +164,7 @@ const Orders: React.FC = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder={t('searchOrders')}
+                placeholder="Rechercher des commandes"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 rounded-xl"
@@ -172,7 +172,7 @@ const Orders: React.FC = () => {
             </div>
             <Button variant="outline" className="rounded-xl border-gray-300 text-gray-700 hover:bg-gray-50">
               <Filter className="h-4 w-4 mr-2" />
-              {t('filters')}
+              Filtres
             </Button>
           </div>
         </CardContent>
@@ -182,22 +182,22 @@ const Orders: React.FC = () => {
       <Card className="rounded-2xl coca-shadow">
         <CardHeader>
           <CardTitle className="text-xl font-bold">
-            {t('ordersList')}
+            Liste des Commandes
           </CardTitle>
           <p className="text-sm text-gray-600">
-            {filteredOrders.length} {t('orders').toLowerCase()}
+            {filteredOrders.length} commandes
           </p>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t('orderNumber')}</TableHead>
-                <TableHead>{t('customer')}</TableHead>
-                <TableHead>{t('createdAt')}</TableHead>
-                <TableHead>{t('total')}</TableHead>
-                <TableHead>{t('paymentStatus')}</TableHead>
-                <TableHead>{t('actions')}</TableHead>
+                <TableHead>Numéro de Commande</TableHead>
+                <TableHead>Client</TableHead>
+                <TableHead>Date de Création</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Statut de Paiement</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -229,7 +229,7 @@ const Orders: React.FC = () => {
                         ? 'bg-green-100 text-green-800'
                         : 'bg-orange-100 text-orange-800'
                     }`}>
-                      {order.payment_status === 'paid' ? t('paid') : t('pending')}
+                      {order.payment_status === 'paid' ? 'Payé' : 'En attente'}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -274,7 +274,7 @@ const Orders: React.FC = () => {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-gray-900">
-                  {t('orderDetails')}
+                  Détails de la Commande
                 </h3>
                 <Button
                   variant="ghost"
@@ -289,29 +289,29 @@ const Orders: React.FC = () => {
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">
-                    {t('orderDetails')}
+                    Informations de Commande
                   </h4>
                   <div className="space-y-2">
-                    <p><span className="font-medium">{t('orderNumber')}:</span> {selectedOrder.order_number}</p>
-                    <p><span className="font-medium">{t('createdAt')}:</span> {formatDate(selectedOrder.created_at)}</p>
-                    <p><span className="font-medium">{t('paymentStatus')}:</span> 
+                    <p><span className="font-medium">Numéro de Commande:</span> {selectedOrder.order_number}</p>
+                    <p><span className="font-medium">Date de Création:</span> {formatDate(selectedOrder.created_at)}</p>
+                    <p><span className="font-medium">Statut de Paiement:</span> 
                       <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
                         selectedOrder.payment_status === 'paid' 
                           ? 'bg-green-100 text-green-800'
                           : 'bg-orange-100 text-orange-800'
                       }`}>
-                        {selectedOrder.payment_status === 'paid' ? t('paid') : t('pending')}
+                        {selectedOrder.payment_status === 'paid' ? 'Payé' : 'En attente'}
                       </span>
                     </p>
                   </div>
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">
-                    {t('customerInfo')}
+                    Informations Client
                   </h4>
                   <div className="space-y-2">
-                    <p><span className="font-medium">{t('customer')}:</span> {selectedOrder.customer_name || 'N/A'}</p>
-                    <p><span className="font-medium">{t('phone')}:</span> {selectedOrder.customer_phone}</p>
+                    <p><span className="font-medium">Client:</span> {selectedOrder.customer_name || 'N/A'}</p>
+                    <p><span className="font-medium">Téléphone:</span> {selectedOrder.customer_phone}</p>
                   </div>
                 </div>
               </div>
@@ -319,7 +319,7 @@ const Orders: React.FC = () => {
               {/* Order Items */}
               <div>
                 <h4 className="font-semibold text-gray-900 mb-4">
-                  {t('orderItems')}
+                  Articles de la Commande
                 </h4>
                 {selectedOrder.items && selectedOrder.items.length > 0 ? (
                   <div className="space-y-3">
@@ -337,7 +337,7 @@ const Orders: React.FC = () => {
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-4">
-                    {t('noProductsFound')}
+                    Aucun produit trouvé
                   </p>
                 )}
               </div>
@@ -345,7 +345,7 @@ const Orders: React.FC = () => {
               {/* Total */}
               <div className="mt-6 pt-4 border-t">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold">{t('totalPrice')}:</span>
+                  <span className="text-lg font-semibold">Prix Total:</span>
                   <span className="text-2xl font-bold text-gray-900">
                     {formatCurrency(parseFloat(selectedOrder.total?.toString() || '0'))} MAD
                   </span>
@@ -357,7 +357,7 @@ const Orders: React.FC = () => {
                   onClick={() => setShowOrderModal(false)}
                   className="rounded-xl"
                 >
-                  {t('close')}
+                  Fermer
                 </Button>
               </div>
             </div>
