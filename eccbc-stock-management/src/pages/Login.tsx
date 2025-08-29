@@ -5,13 +5,12 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent } from '../components/ui/card';
 import { useTranslation } from '../hooks/useTranslation';
+import { useAuth } from '../contexts/AuthContext';
+import type { UserLogin } from '../services/api';
 
-interface LoginProps {
-  onLogin: (token: string, user: any) => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC = () => {
   const { t } = useTranslation();
+  const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -26,29 +25,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setSuccess('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess('Connexion réussie !');
-        // Stocker le token
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
-        // Appeler la fonction de callback
-        onLogin(data.access_token, data.user);
-      } else {
-        setError(data.detail || 'Erreur de connexion');
-      }
-    } catch (err) {
-      setError('Erreur de connexion au serveur');
+      const credentials: UserLogin = { username, password };
+      await login(credentials);
+      setSuccess('Connexion réussie !');
+    } catch (err: any) {
+      setError(err.message || 'Erreur de connexion');
     } finally {
       setLoading(false);
     }

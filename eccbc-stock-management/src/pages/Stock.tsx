@@ -10,9 +10,8 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { productsApi } from '../lib/api';
+import { apiService } from '../services/api';
 import { useTranslation } from '../hooks/useTranslation';
 import type { Product, StockMovement } from '../types';
 
@@ -22,7 +21,6 @@ const Stock: React.FC = () => {
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
   const [loading, setLoading] = useState(true);
 
-
   useEffect(() => {
     fetchData();
   }, []);
@@ -30,12 +28,10 @@ const Stock: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [productsResponse] = await Promise.all([
-        productsApi.getAll()
-      ]);
+      const products = await apiService.getProducts();
       
       // Adapter les données de l'API
-      const adaptedProducts = productsResponse.data.map((product: any) => ({
+      const adaptedProducts = products.map((product: any) => ({
         ...product,
         id: product.id.toString(),
         stock_available: product.available_quantity || 0,
@@ -55,8 +51,6 @@ const Stock: React.FC = () => {
       setLoading(false);
     }
   };
-
-
 
   const getStockLevel = (product: Product) => {
     const available = product.stock_available || 0;
@@ -222,7 +216,6 @@ const Stock: React.FC = () => {
                   <TableHead>{t('availableStock')}</TableHead>
                   <TableHead>{t('reservedStock')}</TableHead>
                   <TableHead>{t('stockLevel')}</TableHead>
-    
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -276,7 +269,6 @@ const Stock: React.FC = () => {
                           </span>
                         </div>
                       </TableCell>
-
                     </motion.tr>
                   );
                 })}
@@ -304,52 +296,60 @@ const Stock: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {stockMovements.map((movement, index) => {
-                const movementInfo = formatMovementType(movement.movement_type);
-                const Icon = movementInfo.icon;
-                
-                return (
-                  <motion.div
-                    key={movement.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className={`p-2 rounded-full bg-white ${movementInfo.color}`}>
-                        <Icon className="h-4 w-4" />
+              {stockMovements.length === 0 ? (
+                <div className="text-center py-8">
+                  <History className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">Aucun mouvement de stock récent</p>
+                  <p className="text-sm text-gray-400">Les mouvements apparaîtront ici</p>
+                </div>
+              ) : (
+                stockMovements.map((movement, index) => {
+                  const movementInfo = formatMovementType(movement.movement_type);
+                  const Icon = movementInfo.icon;
+                  
+                  return (
+                    <motion.div
+                      key={movement.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className={`p-2 rounded-full bg-white ${movementInfo.color}`}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-coca-black">{movement.product.name}</p>
+                          <p className="text-sm text-gray-600">{movement.reason}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-coca-black">{movement.product.name}</p>
-                        <p className="text-sm text-gray-600">{movement.reason}</p>
+                      <div className="text-right">
+                        <p className={`font-bold ${movementInfo.color}`}>
+                          {movement.movement_type === 'out' ? '-' : '+'}
+                          {Math.abs(movement.quantity)}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(movement.created_at).toLocaleDateString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-bold ${movementInfo.color}`}>
-                        {movement.movement_type === 'out' ? '-' : '+'}
-                        {Math.abs(movement.quantity)}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(movement.created_at).toLocaleDateString('fr-FR', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                    </motion.div>
+                  );
+                })
+              )}
             </div>
           </CardContent>
         </Card>
       </motion.div>
-
-
     </div>
   );
 };
 
 export default Stock;
+
+

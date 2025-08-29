@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { productsApi } from '../lib/api';
+import { apiService } from '../services/api';
 import type { Product } from '../types';
 
 const Products: React.FC = () => {
@@ -21,7 +21,6 @@ const Products: React.FC = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-
 
   useEffect(() => {
     fetchProducts();
@@ -42,10 +41,10 @@ const Products: React.FC = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await productsApi.getAll();
+      const products = await apiService.getProducts();
       
       // Adapter les données de l'API pour la compatibilité
-      const adaptedProducts = response.data.map((product: any) => ({
+      const adaptedProducts = products.map((product: any) => ({
         ...product,
         id: product.id.toString(),
         stock_available: product.available_quantity || 0,
@@ -334,3 +333,5 @@ const Products: React.FC = () => {
 };
 
 export default Products;
+
+

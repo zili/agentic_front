@@ -1,106 +1,91 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-
-interface User {
-  id: number;
-  username: string;
-  role: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import { apiService } from '../services/api';
+import type { UserResponse, UserLogin, Token } from '../services/api';
 
 interface AuthContextType {
-  user: User | null;
+  user: UserResponse | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (token: string, user: User) => void;
-  logout: () => void;
-  checkAuth: () => Promise<boolean>;
+  login: (credentials: UserLogin) => Promise<void>;
+  logout: () => Promise<void>;
+  verifyToken: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserResponse | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Vérifier l'authentification au chargement
+  // Vérifier l'authentification au démarrage
   useEffect(() => {
-    checkAuth();
+    const initializeAuth = async () => {
+      try {
+        const currentToken = apiService.getToken();
+        if (currentToken) {
+          setToken(currentToken);
+          
+          // Vérifier si le token est toujours valide
+          const isValid = await apiService.verifyToken();
+          if (isValid.valid) {
+            // Récupérer les informations de l'utilisateur
+            const currentUser = await apiService.getCurrentUser();
+            setUser(currentUser);
+          } else {
+            // Token invalide, déconnecter
+            await logout();
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation de l\'authentification:', error);
+        await logout();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
-  const checkAuth = async (): Promise<boolean> => {
+  const login = async (credentials: UserLogin): Promise<void> => {
     try {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-
-      if (!storedToken || !storedUser) {
-        setIsLoading(false);
-        return false;
-      }
-
-      // Vérifier si le token est valide
-      const response = await fetch('http://localhost:8000/api/auth/verify', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${storedToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        setToken(storedToken);
-        setIsLoading(false);
-        return true;
-      } else {
-        // Token invalide, nettoyer le localStorage
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setUser(null);
-        setToken(null);
-        setIsLoading(false);
-        return false;
-      }
+      setIsLoading(true);
+      const tokenData: Token = await apiService.login(credentials);
+      setToken(tokenData.access_token);
+      setUser(tokenData.user);
     } catch (error) {
-      console.error('Erreur lors de la vérification de l\'authentification:', error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setUser(null);
-      setToken(null);
+      console.error('Erreur lors de la connexion:', error);
+      throw error;
+    } finally {
       setIsLoading(false);
-      return false;
     }
   };
 
-  const login = (newToken: string, userData: User) => {
-    setToken(newToken);
-    setUser(userData);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(userData));
+  const logout = async (): Promise<void> => {
+    try {
+      await apiService.logout();
+      setUser(null);
+      setToken(null);
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    }
   };
 
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const verifyToken = async (): Promise<boolean> => {
+    try {
+      const result = await apiService.verifyToken();
+      return result.valid;
+    } catch (error) {
+      console.error('Erreur lors de la vérification du token:', error);
+      return false;
+    }
   };
 
   const value: AuthContextType = {
@@ -110,7 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     login,
     logout,
-    checkAuth,
+    verifyToken,
   };
 
   return (
@@ -118,4 +103,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth doit être utilisé dans un AuthProvider');
+  }
+  return context;
 };

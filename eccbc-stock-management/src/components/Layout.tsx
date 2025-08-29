@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../hooks/useTranslation';
-import { ordersApi } from '../lib/api';
+import { apiService } from '../services/api';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -35,7 +35,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const [recentOrders, setRecentOrders] = useState([]);
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [notificationCount, setNotificationCount] = useState(0);
 
   const menuItems: MenuItem[] = [
@@ -72,8 +72,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
   useEffect(() => {
     const fetchRecentOrders = async () => {
       try {
-        const response = await ordersApi.getAll();
-        const orders = response.data.slice(0, 3); // Prendre les 3 dernières commandes
+        const orders = await apiService.getAllOrders(3);
         setRecentOrders(orders);
         setNotificationCount(orders.length);
       } catch (error) {
@@ -93,9 +92,9 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
             {/* Logo */}
                           <div className="flex items-center space-x-4 ml-4">
                 <div className="flex items-center space-x-3">
-                <img
-                  src="/ECCBC_Logo.png"
-                  alt="ECCBC Logo"
+                <img 
+                  src="/ECCBC_Logo.png" 
+                  alt="ECCBC Logo" 
                   className="h-20 w-auto"
                 />
                 <span className="text-lg text-red-600 hidden sm:block">
@@ -103,7 +102,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                 </span>
               </div>
             </div>
-
+            
             {/* Navigation centrale */}
             <div className="hidden md:flex items-center space-x-8">
               <motion.button
@@ -150,7 +149,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                 onClick={() => onPageChange('products')}
                 className={`px-6 py-3 font-medium text-lg transition-all duration-300 relative ${
                   currentPage === 'products' 
-                    ? 'text-red-600' 
+                      ? 'text-red-600'
                     : 'text-gray-600 hover:text-red-600'
                 }`}
                 whileHover={{ scale: 1.05 }}
@@ -187,7 +186,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                 )}
               </motion.button>
             </div>
-
+            
             {/* Actions de droite */}
             <div className="flex items-center space-x-4">
               {/* Barre de recherche */}
@@ -199,10 +198,10 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                   className="pl-10 pr-4 py-2 w-64 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               </div>
-
+              
               {/* Sélecteur de langue */}
               <div className="relative">
-                <button
+                <button 
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowLanguageMenu(!showLanguageMenu);
@@ -256,7 +255,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                       {notificationCount}
                     </span>
                   )}
-                </button>
+              </button>
 
                 {showNotifications && (
                   <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-200 z-50">
@@ -296,14 +295,14 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
 
               {/* Menu utilisateur */}
               <div className="relative">
-                <button
+              <button 
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowUserMenu(!showUserMenu);
                   }}
                   className="flex items-center space-x-2 p-2 rounded-xl text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  <User size={24} className="text-red-600 transition-colors duration-700" />
+              >
+                <User size={24} className="text-red-600 transition-colors duration-700" />
                 </button>
 
                 {showUserMenu && (

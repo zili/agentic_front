@@ -14,7 +14,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { ordersApi } from '../lib/api';
+import { apiService } from '../services/api';
 import type { Order } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -50,10 +50,10 @@ const Orders: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await ordersApi.getAll();
+      const orders = await apiService.getAllOrders();
       
       // Adapter les données de l'API au format frontend
-      const adaptedOrders = response.data.map((order: any) => ({
+      const adaptedOrders = orders.map((order: any) => ({
         id: order.id,
         order_number: order.order_number,
         customer_phone: order.customer_phone,
@@ -64,7 +64,7 @@ const Orders: React.FC = () => {
         items: order.items || []
       }));
       
-      setOrders(adaptedOrders);
+              setOrders(adaptedOrders as any);
     } catch (error) {
       console.error('Erreur lors de la récupération des commandes:', error);
     } finally {
@@ -256,7 +256,7 @@ const Orders: React.FC = () => {
               <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">Aucune commande trouvée</p>
               <p className="text-sm text-gray-400">
-                {searchTerm ? 'Essayez de modifier votre recherche' : 'Vérifiez que le serveur backend est démarré sur http://localhost:8000'}
+                {searchTerm ? 'Essayez de modifier votre recherche' : 'Aucune commande trouvée'}
               </p>
             </div>
           )}

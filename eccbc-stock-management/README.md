@@ -1,69 +1,157 @@
-# React + TypeScript + Vite
+# ECCBC Stock Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Système de gestion de stock moderne pour ECCBC, développé avec React, TypeScript et Tailwind CSS.
 
-Currently, two official plugins are available:
+## 🚀 Technologies Utilisées
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Frontend
+- **React 18** - Bibliothèque JavaScript pour les interfaces utilisateur
+- **TypeScript** - Typage statique pour JavaScript
+- **Vite** - Outil de build rapide
+- **Tailwind CSS** - Framework CSS utilitaire
+- **Framer Motion** - Bibliothèque d'animations
+- **Lucide React** - Icônes modernes
+- **Axios** - Client HTTP pour les requêtes API
 
-## Expanding the ESLint configuration
+### API
+- **API N8N** - API déployée sur `n8n.xandys.xyz:8000`
+- **Authentification JWT** - Gestion sécurisée des sessions
+- **Base de données PostgreSQL** - Stockage des données
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🏗️ Architecture
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Structure du Projet
+```
+src/
+├── components/          # Composants réutilisables
+├── contexts/           # Contextes React (Auth, etc.)
+├── hooks/              # Hooks personnalisés
+├── i18n/               # Internationalisation
+├── lib/                # Utilitaires et configurations
+├── pages/              # Pages de l'application
+├── services/           # Services API
+├── types/              # Types TypeScript
+└── assets/             # Ressources statiques
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Services API
+- **apiService** - Service principal pour communiquer avec l'API n8n
+- **AuthContext** - Gestion de l'authentification
+- **useTranslation** - Support multilingue (FR, EN, AR)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🚀 Installation et Démarrage
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Prérequis
+- Node.js 18+ 
+- npm ou yarn
+
+### Installation
+```bash
+# Cloner le projet
+git clone <repository-url>
+cd eccbc-stock-management
+
+# Installer les dépendances
+npm install
+
+# Démarrer le serveur de développement
+npm run dev
 ```
+
+L'application sera accessible sur `http://localhost:5173`
+
+### Scripts Disponibles
+- `npm run dev` - Démarre le serveur de développement
+- `npm run build` - Compile l'application pour la production
+- `npm run lint` - Vérifie le code avec ESLint
+- `npm run preview` - Prévisualise la version de production
+
+## 🔐 Authentification
+
+Le système utilise l'authentification JWT avec l'API n8n :
+- Connexion sécurisée avec nom d'utilisateur et mot de passe
+- Tokens stockés dans le localStorage
+- Vérification automatique de la validité des tokens
+- Déconnexion automatique en cas de token expiré
+
+## 🌐 Fonctionnalités
+
+### Dashboard
+- Vue d'ensemble des métriques importantes
+- Graphiques et statistiques en temps réel
+- Notifications des commandes récentes
+
+### Gestion des Produits
+- Liste des produits avec informations détaillées
+- Recherche multilingue (FR, EN, AR)
+- Gestion des catégories et prix
+
+### Gestion du Stock
+- Suivi des quantités en stock
+- Gestion des réservations
+- Alertes de stock faible
+
+### Commandes
+- Création de nouvelles commandes
+- Historique des commandes par client
+- Suivi du statut des commandes
+
+## 🎨 Interface Utilisateur
+
+### Design System
+- **Glassmorphism** - Effets de verre avec transparence
+- **Animations fluides** - Transitions avec Framer Motion
+- **Responsive Design** - Adaptation mobile et desktop
+- **Thème ECCBC** - Couleurs et branding personnalisés
+
+### Composants UI
+- Cartes avec ombres douces et coins arrondis
+- Boutons avec animations et états hover
+- Formulaires avec validation
+- Modales et notifications toast
+
+## 🔧 Configuration
+
+### Variables d'Environnement
+L'API est configurée pour pointer vers `n8n.xandys.xyz:8000` par défaut.
+
+### Internationalisation
+Le système supporte 3 langues :
+- Français (FR) - Langue par défaut
+- Anglais (EN)
+- Arabe (AR)
+
+## 📱 Responsive Design
+
+L'application est entièrement responsive avec :
+- Design mobile-first
+- Navigation adaptative
+- Composants flexibles
+- Grilles CSS modernes
+
+## 🔒 Sécurité
+
+- Authentification JWT sécurisée
+- Validation des données côté client
+- Protection contre les injections XSS
+- Gestion sécurisée des tokens
+
+## 🚀 Déploiement
+
+### Build de Production
+```bash
+npm run build
+```
+
+### Serveur de Production
+```bash
+npm run preview
+```
+
+## 📄 Licence
+
+© 2025 ECCBC. Tous droits réservés.
+
+## 🤝 Support
+
+Pour toute question ou problème, contactez l'équipe de développement ECCBC.

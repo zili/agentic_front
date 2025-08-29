@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import type { Product, Order } from '../types';
-import { productsApi, ordersApi } from '../lib/api';
+import { apiService } from '../services/api';
 import { useTranslation } from '../hooks/useTranslation';
 
 
@@ -35,9 +35,9 @@ const Dashboard: React.FC = () => {
         setLoading(true);
         
         // Récupérer les produits depuis l'API
-        const productsResponse = await productsApi.getAll();
+        const products = await apiService.getProducts();
         // Adapter les données de l'API
-        const products = productsResponse.data.map((product: any) => ({
+        const adaptedProducts = products.map((product: any) => ({
           ...product,
           id: product.id.toString(),
           stock_available: product.available_quantity || 0,
@@ -48,8 +48,7 @@ const Dashboard: React.FC = () => {
         // Essayer de récupérer les vraies commandes, sinon utiliser des données vides
         let ordersData = [];
         try {
-          const ordersResponse = await ordersApi.getAll();
-          ordersData = ordersResponse.data.slice(0, 3); // Prendre les 3 dernières commandes
+          ordersData = await apiService.getAllOrders(3); // Prendre les 3 dernières commandes
         } catch (error) {
           console.error('Impossible de récupérer les commandes:', error);
           // Pas de commandes pour le moment
@@ -66,10 +65,10 @@ const Dashboard: React.FC = () => {
         }));
 
         // Calculer les statistiques depuis les vraies données
-        const totalProducts = products.length;
-        const totalStock = products.reduce((sum: number, p: any) => sum + (p.stock_total || 0), 0);
+        const totalProducts = adaptedProducts.length;
+        const totalStock = adaptedProducts.reduce((sum: number, p: any) => sum + (p.stock_total || 0), 0);
         const recentOrdersCount = recentOrders.length;
-        const lowStock = products.filter((p: any) => (p.stock_available || 0) < 10);
+        const lowStock = adaptedProducts.filter((p: any) => (p.stock_available || 0) < 10);
         
         // Calculer le chiffre d'affaires total
         const totalRevenue = recentOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);

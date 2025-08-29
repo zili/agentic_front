@@ -10,7 +10,7 @@ import './index.css';
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState('dashboard');
-  const { isAuthenticated, isLoading, login } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const renderPage = () => {
     switch (currentPage) {
@@ -41,7 +41,7 @@ function AppContent() {
 
   // Si non authentifié, afficher la page de login
   if (!isAuthenticated) {
-    return <Login onLogin={login} />;
+    return <Login />;
   }
 
   // Si authentifié, afficher l'application
